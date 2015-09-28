@@ -1,7 +1,9 @@
-load('0322_8min.mat')
+clear
+load('0104_8min.mat')
 
 y=signal.pleth.y;
 Fs=param.samplingrate.pleth;
+ref=reference.hr.ecg.x;
 
 %[b,a] = butter(2,[0.5 40]/(Fs/2), 'bandpass');
 %y = filtfilt(b,a,y_org);
@@ -27,7 +29,7 @@ ptp_values = 1;
 ptp_time = 0;
 ptp_i = 1;
 % Decay rate (in the beginning it is a constant so there would be something to start with)
-decay = 1.5;
+decay = 0.01;
 % Variable for delay
 delay = 0;
 % Variables for R wave detection
@@ -41,7 +43,7 @@ r_width_arr = 0;
 
 
 % - Peak detector (crawler) -
-for i = 2 : length(y_d)-12
+for i = 2 : length(y_d)-7
     
     % - Check if current point in the signal is a R peak - 
     % To detect a peak, the signal at a particular point should satisfy 
@@ -66,8 +68,14 @@ for i = 2 : length(y_d)-12
      
   %   if ((y_d(i,1) > 0 && y_d(i-1,1) < 0) | (y_d(i,1) == 0 && y_d(i-1,1)))  && ...
    %          ((y(i,1) > y(i+7)) && (y(i,1) > y(i+4)) && (y(i,1) > y(i+5)) && (y(i,1) > y(i+6)))
+   
+   %pröva med en ännu mer utförlig if sats
          
-         
+        
+             
+             if (((y_d(i,1) > 0 && y_d(i-1,1) < 0) | (y_d(i,1) == 0 && y_d(i-1,1))) && ...
+                     ((y(i,1) >= y(i+1,1) && y(i,1) >= y(i+2,1))))
+   
         % Set threshold to peak value
         crawler(i,1) = y(i,1);
         
@@ -89,13 +97,24 @@ for i = 2 : length(y_d)-12
         %rwave_time = [rwave_time; t(i)];
         %rwave_value = [rwave_value; yy(i)];
         
-    % end
+        
+        
+        
+             end
+        
+         
+        
+     
     
     % - If a peak is not detected then decrease the threshold -
     else
         % Calculate decay depending on the amplitude of the last detected
         % peak
-        decay = peak/1000;
+        decay = peak/100;
+        
+        if decay < 0.01
+            decay=0.01;
+        end
         % Decrease the threshold by the decay rate and save it
         crawler(i,1) = crawler(i-1,1) - decay;
         
@@ -114,11 +133,16 @@ L=length(ptp_time);
 for i=1:(L-1)
     pulse_real_time(i)=60/(ptp_time(i+1)-ptp_time(i));
 end
+
+l_ref=length(ref);
+for i=1:(l_ref-1)
+    pulse_real_ref(i)=60/(ref(i+1)-ref(i));
+end
     
 pulse=mean(pulse_real_time(3:end))
 
 figure(2)
-plot(ptp_time(1:L-1),pulse_real_time)
+plot(ptp_time(1:L-1),pulse_real_time, 'b',ref(1:l_ref-1), pulse_real_ref, 'r')
 
 
 
