@@ -1,5 +1,11 @@
 clear;
+clc;
 
 s = BOSerialData();
-s.setSerialPortName('hello');
-s.mSerialPortName
+s.setPortName('/dev/tty.usbmodem411');
+s.mPortName
+s.open();
+
+s.plot();
+
+s.close();
