@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 28-Sep-2015 13:28:02
+% Last Modified by GUIDE v2.5 30-Sep-2015 14:02:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -61,6 +61,12 @@ guidata(hObject, handles);
 % UIWAIT makes GUI wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
+%Show our logo in axes 4
+g= imread('Logo.png');
+axes(handles.axes4)
+imshow(g);
+
+
 
 % --- Outputs from this function are returned to the command line.
 function varargout = GUI_OutputFcn(hObject, eventdata, handles) 
@@ -71,7 +77,8 @@ function varargout = GUI_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
-
+axes(handles.PPG)
+plot(t,c)
 
 % --- Executes on button press in loadbutton.
 function loadbutton_Callback(hObject, eventdata, handles)
@@ -83,5 +90,19 @@ function loadbutton_Callback(hObject, eventdata, handles)
 % --- Executes on button press in savebutton.
 function savebutton_Callback(hObject, eventdata, handles)
 % hObject    handle to savebutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in help.
+function help_Callback(hObject, eventdata, handles)
+% hObject    handle to help (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in Exit.
+function Exit_Callback(hObject, eventdata, handles)
+% hObject    handle to Exit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
