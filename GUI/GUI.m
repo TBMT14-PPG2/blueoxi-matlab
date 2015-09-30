@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 30-Sep-2015 14:02:39
+% Last Modified by GUIDE v2.5 30-Sep-2015 14:24:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -63,7 +63,7 @@ guidata(hObject, handles);
 
 %Show our logo in axes 4
 g= imread('Logo.png');
-axes(handles.axes4)
+axes(handles.logo)
 imshow(g);
 
 
@@ -77,8 +77,6 @@ function varargout = GUI_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
-axes(handles.PPG)
-plot(t,c)
 
 % --- Executes on button press in loadbutton.
 function loadbutton_Callback(hObject, eventdata, handles)
