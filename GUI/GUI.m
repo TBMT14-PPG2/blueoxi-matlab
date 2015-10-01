@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 30-Sep-2015 14:24:47
+% Last Modified by GUIDE v2.5 01-Oct-2015 09:44:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -66,6 +66,11 @@ g= imread('Logo.png');
 axes(handles.logo)
 imshow(g);
 
+% % Try to change the size on the toolbar
+% hToolbar = findall(gcf,'tag','FigureToolBar');
+% jToolbar = get(get(hToolbar,'JavaContainer'),'ComponentPeer');
+% jToolbar.setPreferredSize(java.awt.Dimension(10,50));
+% jToolbar.revalidate; % refresh/update the displayed toolbar
 
 
 % --- Outputs from this function are returned to the command line.
@@ -75,14 +80,20 @@ function varargout = GUI_OutputFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Get default command line output from handles structure
-varargout{1} = handles.output;
+axes(handles.pulse_graph)
+plot(sin(0:0.1:10))
+
+axes(handles.oxy_graph)
+plot(cos(0:0.1:10))
+
 
 % --- Executes on button press in loadbutton.
 function loadbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to loadbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+% Get default command line output from handles structure
+varargout{1} = handles.output;
 
 
 % --- Executes on button press in savebutton.
@@ -102,5 +113,19 @@ function help_Callback(hObject, eventdata, handles)
 % --- Executes on button press in Exit.
 function Exit_Callback(hObject, eventdata, handles)
 % hObject    handle to Exit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function exit_bottom_Callback(hObject, eventdata, handles)
+% hObject    handle to exit_bottom (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function help_bottom_Callback(hObject, eventdata, handles)
+% hObject    handle to help_bottom (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
