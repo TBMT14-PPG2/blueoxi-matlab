@@ -43,7 +43,7 @@ r_width_arr = 0;
 
 
 % - Peak detector (crawler) -
-for i = 2 : length(y_d)-7
+for i = 2 : length(y_d)-9
     
     % - Check if current point in the signal is a R peak - 
     % To detect a peak, the signal at a particular point should satisfy 
@@ -140,6 +140,7 @@ for i=1:(l_ref-1)
 end
     
 pulse=mean(pulse_real_time(3:end))
+pulse_ref=mean(pulse_real_ref(3:end))
 
 figure(2)
 plot(ptp_time(1:L-1),pulse_real_time, 'b',ref(1:l_ref-1), pulse_real_ref, 'r')
