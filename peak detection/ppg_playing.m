@@ -146,5 +146,5 @@ figure(2)
 plot(ptp_time(1:L-1),pulse_real_time, 'b',ref(1:l_ref-1), pulse_real_ref, 'r')
 
 
-
+%hej hej 
 
