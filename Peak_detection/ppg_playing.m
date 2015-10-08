@@ -1,12 +1,14 @@
 clear all
 load('0104_8min.mat')
 
-y = Generated_PPG_signal';
-Fs = samplingrate;
-ref=reference.hr.pleth.x;
+y=signal.pleth.y; %samples
+Fs=param.samplingrate.pleth;
+ref=reference.hr.pleth.x; % the refernace signal
 
-[b,a] = butter(2,[0.5 40]/(Fs/2), 'bandpass');
-y = filtfilt(b,a,y);
+% [b,a] = butter(2,[0.5 40]/(Fs/2), 'bandpass');
+% y = filtfilt(b,a,y);
+[b,a] = butter(2,0.5, 'low');
+y1 = filter(b,a,y);
 
 N=length(y);
 T = 1/Fs;
