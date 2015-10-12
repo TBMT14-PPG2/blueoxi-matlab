@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 01-Oct-2015 09:44:49
+% Last Modified by GUIDE v2.5 12-Oct-2015 10:42:03
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -66,6 +66,19 @@ g= imread('Logo.png');
 axes(handles.logo)
 imshow(g);
 
+%Display the value of the maximum pulse in tag max_pulse_value
+S = sprintf('%d', 60);
+set(handles.max_pulse_value, 'String', S);
+
+%Display the value of the current pulse in tag pulse_value
+S = sprintf('%d', 120);
+set(handles.pulse_value, 'String', S);
+
+%Display the value of the current oxy_sat in tag oxy_value
+S = sprintf('%d', 98);
+set(handles.oxy_value, 'String', S);
+
+
 % % Try to change the size on the toolbar
 % hToolbar = findall(gcf,'tag','FigureToolBar');
 % jToolbar = get(get(hToolbar,'JavaContainer'),'ComponentPeer');
@@ -80,12 +93,24 @@ function varargout = GUI_OutputFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-axes(handles.pulse_graph)
-plot(sin(0:0.1:10))
+%Show our wave form in axes1 with tag waveform_graph
+axes(handles.waveform_graph)
+plot(sin(0:0.1:10));
 
+%Show BPM and O2 in axes2 with tag oxy_graph
 axes(handles.oxy_graph)
-plot(cos(0:0.1:10))
-
+x=60:0.001:61;
+y=97:0.002:99;
+t=0:1000;
+[ax,p1,p2] = plotyy(t,x,t,y,'semilogy','plot');
+xlabel(ax(1),'Time [s]') % label x-axis
+ylabel(ax(1),'BPM') % label left y-axis
+ylabel(ax(2),'% O2') % label right y-axis
+ylim([30 200])
+ylim(ax(2),[60 110]);
+line(t,x,'Color','k')
+ax(1).XColor = 'k';
+ax(1).YColor = 'k';
 
 % --- Executes on button press in loadbutton.
 function loadbutton_Callback(hObject, eventdata, handles)
@@ -113,19 +138,5 @@ function help_Callback(hObject, eventdata, handles)
 % --- Executes on button press in Exit.
 function Exit_Callback(hObject, eventdata, handles)
 % hObject    handle to Exit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --------------------------------------------------------------------
-function exit_bottom_Callback(hObject, eventdata, handles)
-% hObject    handle to exit_bottom (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --------------------------------------------------------------------
-function help_bottom_Callback(hObject, eventdata, handles)
-% hObject    handle to help_bottom (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
