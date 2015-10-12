@@ -1,0 +1,33 @@
+
+[signal1,AC1,DC1]=Filter_PPG(c1);
+[signal2,AC2,DC2]=Filter_PPG(c2);
+close all
+R=(AC1./DC1)./(AC2./DC2);
+
+ 
+n=100;
+    
+filtered_R=zeros(1,length(R)-n);
+
+for i=1:(length(R)-n)
+
+    filtered_R(i)=mean(R(i:i+n));
+
+end
+subplot(2,1,1)
+hold;
+plot(AC1,'B')
+plot(DC1,'R')
+subplot(2,1,2)
+hold;
+plot(AC2,'B')
+plot(DC2,'R')
+figure
+
+subplot(2,1,1)
+plot(c1)
+subplot(2,1,2)
+plot(c2)
+figure
+plot(filtered_R)
+axis([0 length(filtered_R) 0 2*max(filtered_R)])
