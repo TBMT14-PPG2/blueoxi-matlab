@@ -1,0 +1,56 @@
+function [ filtered_signal2, AC, DC ] = Filter_PPG( signal )
+close all
+
+figure
+plot(signal)
+
+    n=8;
+    
+    filtered_signal=zeros(1,length(signal)-n);
+
+    for i=1:(length(signal)-n)
+
+        filtered_signal(i)=mean(signal(i:i+n));
+
+    end
+    figure
+    subplot(2,1,1)
+    plot(signal)
+    subplot(2,1,2)
+    plot(filtered_signal)
+
+    
+    k=80;
+    
+    filtered_signal2=zeros(1,length(filtered_signal)-k);
+    AC=zeros(1,length(filtered_signal)-k);
+    DC=zeros(1,length(filtered_signal)-k);
+    
+    for i=1:(length(filtered_signal)-k)
+        
+        if i<k+1
+            DC(i)=min(filtered_signal(i:i+k));
+            AC(i)=max(filtered_signal(i:i+k))-min(filtered_signal(i:i+k));
+        else
+
+           
+            DC(i)=min(filtered_signal(i-k:i+k));
+            AC(i)=max(filtered_signal(i-k:i+k))-min(filtered_signal(i-k:i+k));
+
+            filtered_signal2(i)=filtered_signal(i)-DC(i)-AC(i)/2;
+        end
+    
+    end
+    filtered_signal2=filtered_signal2+abs(min(filtered_signal2));
+    
+    figure
+    subplot(2,1,1)
+    plot(filtered_signal)
+    hold;
+    plot(DC+AC,'G')
+    plot(DC,'R')
+
+    subplot(2,1,2)
+    plot(filtered_signal2)
+    
+end
