@@ -6,6 +6,7 @@ close all
 n=1100*5; %~5 pulses
     
 R=(AC1./DC1)./(AC2./DC2);
+filtered_R=zeros(1,length(AC1)-n);
 
 for i=1:(length(AC1)-n)
     
