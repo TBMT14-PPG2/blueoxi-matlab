@@ -1,33 +1,48 @@
-
-[signal1,AC1,DC1]=Filter_PPG(c1);
-[signal2,AC2,DC2]=Filter_PPG(c2);
+[signal1,AC1,DC1]=Filter_PPG(y1);
+[signal2,AC2,DC2]=Filter_PPG(y2);
 close all
-R=(AC1./DC1)./(AC2./DC2);
 
  
-n=100;
+n=1100*5; %~5 pulses
     
-filtered_R=zeros(1,length(R)-n);
+R=(AC1./DC1)./(AC2./DC2);
 
-for i=1:(length(R)-n)
-
-    filtered_R(i)=mean(R(i:i+n));
+for i=1:(length(AC1)-n)
+    
+     if i<n+1
+         filtered_R(i)=mean(R(i:i+n));
+     else
+         filtered_R(i)=mean(R(i:i+n));
+     end
 
 end
+
+
 subplot(2,1,1)
 hold;
 plot(AC1,'B')
 plot(DC1,'R')
+legend('AC1','DC1')
+axis([0 length(AC1) 0 max(DC1)])
 subplot(2,1,2)
 hold;
 plot(AC2,'B')
 plot(DC2,'R')
+legend('AC2','DC2')
+axis([0 length(AC2) 0 max(DC1)])
 figure
 
 subplot(2,1,1)
-plot(c1)
+plot(y1)
+title('signal 1')
+axis([0 length(y1) 0 max(y1)])
 subplot(2,1,2)
-plot(c2)
+plot(y2)
+title('signal 2')
+axis([0 length(y2) 0 max(y2)])
 figure
 plot(filtered_R)
+hold
+plot(R,'r')
 axis([0 length(filtered_R) 0 2*max(filtered_R)])
+title('R')
