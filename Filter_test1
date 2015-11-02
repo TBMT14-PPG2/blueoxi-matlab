@@ -4,7 +4,7 @@ close all
 figure
 plot(signal)
 
-    n=8;
+    n=80;
     
     filtered_signal=zeros(1,length(signal)-n);
 
