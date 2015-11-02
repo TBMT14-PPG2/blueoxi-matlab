@@ -20,7 +20,7 @@ plot(signal)
     plot(filtered_signal)
 
     
-    k=80;
+    k=800;
     
     filtered_signal2=zeros(1,length(filtered_signal)-k);
     AC=zeros(1,length(filtered_signal)-k);
