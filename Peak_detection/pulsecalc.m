@@ -1,8 +1,11 @@
-[Y, Fs]=audioread('ppg1.wav');
+clear all
+close all
+clc
+[Y, Fs]=audioread('hand1.wav');
 X=Y(:,1);
 
- [y,AC, DC]=Filter_PPG(X);
-k=700;
+ y=Filter_PPG(X);
+k=round(0.007*length(y));
 for i=1:(length(y)-k)
         
         if i<k+1
@@ -35,7 +38,7 @@ figure(444)
 subplot(2,1,1)
 plot(y)
 hold on
-plot(peakmatch)
+plot(peakmatch); title('filtered signal with peaks identified');
 hold off
 subplot(2,1,2)
-plot(peaks)
+plot(peaks); title('the identified peaks')
