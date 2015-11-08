@@ -1,0 +1,192 @@
+clear
+close all
+
+% [Y, Fs]=audioread('wrist1.wav');
+% X=Y(:,1);
+% %X=X(10000:end);
+% 
+% y=Filter_PPG(X);
+
+load('C:\Users\Patrik\Documents\MATLAB\data\0128_8min.mat')
+y=signal.pleth.y;
+Fs=param.samplingrate.pleth;
+
+N=length(y);
+T = 1/Fs;
+t = (0:N-1)*T;
+%decayrate=0.00000034;
+decayrate=0.01;
+
+
+
+% --- Peak detector ---
+% - Define variables used for the peak detector -
+% Variable to save threshold values
+crawler = zeros(length(y)-1,1);
+crawler(1)=max(y(1:5000))*4/5;
+lastpeak1=crawler(1)*5/4;
+lastpeak2=crawler(1)*5/4;
+
+peak = lastpeak1;
+ptp_time = 0;
+decay = decayrate;
+delay = Fs/2;
+five_pulses=60*ones(1,5);
+avg_pulse=60;
+Q=500000;
+sec_int=round(Fs/7);
+y_d(1)=y(1)-y(2);
+
+% - Peak detector 
+for i = 2 : length(y)-1
+    
+    y_d(i) = y(i) - y(i+1);
+
+  
+    if (((y_d(i) > 0 && y_d(i-1) < 0) && (crawler(i-1) < y(i)) && (delay > Fs)) || ...
+            ((y(i) > y(i-1)) && (crawler(i-1) < y(i)) && (delay > Fs)))
+        
+      
+            % Check if enough of the signal is left. Not needed in real
+            % time
+         if i<length(y)-sec_int
+
+             if (y(i)>=max(y(i:i+sec_int)) && y(i)>=max(y(i-sec_int:i-1)) )
+                    
+                    % - Calculate and save Peak to Peak (R-R interval) -
+                    ptp_time = [ptp_time; t(i)];
+                    lastpeak=peak;
+                    peak = y(i);
+                    
+                     % Set threshold to peak value. If the difference in
+                     % amplitude between two peaks is large, Some kind of
+                     % distorsion is assumed and the crawler is set to the
+                     % value of the earlier peak.
+                    if (max([peak lastpeak])/min([peak lastpeak])>1.5  && peak>lastpeak )
+                        crawler(i)=lastpeak;
+                        peak=(lastpeak+peak)/2;
+                    else
+                        crawler(i) = peak;
+                    end
+                    
+                            if length(ptp_time)>1
+
+                                 five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
+
+
+                                 if (five_pulses(5)>mean(five_pulses(1:4))/2 && five_pulses(5)<mean(five_pulses(1:4))*1.5)
+                                     avg_pulse=[avg_pulse mean(five_pulses)];
+                                 else
+                                     avg_pulse=[avg_pulse avg_pulse(end)];
+                                 end
+                             end
+
+                    % - Reset delay time -
+                    delay = 0;
+                 else
+
+                    decay = peak/20000000;
+
+                if decay < decayrate
+                    decay=decayrate;
+                end
+                    % Decrease the threshold by the decay rate and save it
+                    crawler(i) = crawler(i-1) - decay;
+
+                    % - Increment delay -
+                    delay = delay + avg_pulse(end)/40;
+             end
+
+
+         else
+
+             if ( y(i)>=max(y(i:end)) && y(i)>=max(y(i-sec_int:i-1)) )
+                   
+                    % - Calculate and save Peak to Peak (R-R interval) -
+                    ptp_time = [ptp_time; t(i)];
+                    lastpeak=(lastpeak+peak)/2;
+                    peak = y(i);
+                    
+                     % Set threshold to peak value. If the difference in
+                     % amplitude between two peaks is large, Some kind of
+                     % distorsion is assumed and the crawler is set to the
+                     % value of the earlier peak.
+                    if ( max([peak lastpeak])/min([peak lastpeak])>1.5 && peak>lastpeak )
+                        crawler(i)=lastpeak;
+                        peak=lastpeak;
+                    else
+                        crawler(i) = peak;
+                    end
+                    
+                            if length(ptp_time)>1
+
+                                 five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
+
+
+                                 if (five_pulses(5)>mean(five_pulses(1:4))/2 && five_pulses(5)<mean(five_pulses(1:4))*1.5)
+                                     avg_pulse=[avg_pulse mean(five_pulses)];
+                                 else
+                                     avg_pulse=[avg_pulse avg_pulse(end)];
+                                 end
+                             end
+
+                    % - Reset delay time -
+                    delay = 0;
+                else
+
+                    decay = peak/20000000;
+
+                if decay < decayrate
+                    decay=decayrate;
+                end
+                    % Decrease the threshold by the decay rate and save it
+                    crawler(i) = crawler(i-1) - decay;
+
+                    % - Increment delay -
+                    delay = delay + avg_pulse(end)/40;
+             end
+
+         end
+        
+
+   
+    
+        
+        % - If a peak is not detected then decrease the threshold -
+    else
+        % Calculate decay depending on the amplitude of the last detected
+        % peak
+        decay = peak/20000000;
+        
+        if decay < decayrate
+            decay=decayrate;
+        end
+        
+        
+        % Decrease the threshold by the decay rate and save it
+        crawler(i) = crawler(i-1) - decay;
+        
+        % - Increment delay -
+        delay = delay + avg_pulse(end)/40;
+    end
+    
+end
+
+figure(7)
+plot(t(1:N-1), y(1:N-1), 'b');
+hold on
+plot(t(1:N-1), crawler, 'r');
+
+L=length(ptp_time);
+%calculate pulse in real time
+pulse_real_time=zeros(1,L-1);
+for i=1:(L-1)
+    pulse_real_time(i)=60/(ptp_time(i+1)-ptp_time(i));
+end
+
+
+figure(8)
+plot(avg_pulse,'r')
+hold
+plot(pulse_real_time,'b')
+plot(reference.hr.pleth.y,'g')
