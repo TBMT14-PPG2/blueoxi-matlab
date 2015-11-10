@@ -54,7 +54,6 @@ function GUI_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for GUI
 handles.output = hObject;
-handles.signal_loaded=0;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -109,6 +108,30 @@ guidata(hObject,handles);
 % axes(handles.waveform_graph)
 % plot(filtered_signal);
 % handles.waveform_graph=gca;
+t=[0:1/Fs:10];
+plot(handles.waveform_graph,t,sig(1:length(t)));
+
+%Display the value of the current pulse in tag pulse_value
+set(handles.pulse_value, 'String', BPM);
+
+%Show BPM and O2 in axes2 with tag oxy_graph
+axes(handles.oxy_graph)
+x=60:0.001:61;
+y=97:0.002:99;
+le=1:length(avg_pulse);
+t1=0:1000;
+plot(le,avg_pulse);
+%[ax,p1,p2] = plotyy(t,avg_pulse,t1,y,'semilogy','plot');
+% xlabel(ax(1),'Time [s]') % label x-axis
+% ylabel(ax(1),'BPM') % label left y-axis
+% ylabel(ax(2),'% O2') % label right y-axis
+% ylim([30 200])
+% ylim(ax(2),[60 110]);
+% line(t,x,'Color','k')
+% ax(1).XColor = 'k';
+% ax(1).YColor = 'k';
+
+
 
 % --- Executes on button press in play.
 function play_Callback(hObject, eventdata, handles)
@@ -117,31 +140,4 @@ function play_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if handles.signal_loaded==0
-    msgbox('Please load a file');
-    return
-else
-    [avg_pulse, sig, BPM]=func_pulsecalc(handles.signal, handles.Fs);
-    t=[0:1/handles.Fs:10];
-    plot(handles.waveform_graph,t,sig(1:length(t)));
-    
-    %Display the value of the current pulse in tag pulse_value
-    set(handles.pulse_value, 'String', BPM);
-    
-    %Show BPM and O2 in axes2 with tag oxy_graph
-    axes(handles.oxy_graph)
-    x=60:0.001:61;
-    y=97:0.002:99;
-    le=1:length(avg_pulse);
-    t1=0:1000;
-    plot(le,avg_pulse);
-    %[ax,p1,p2] = plotyy(t,avg_pulse,t1,y,'semilogy','plot');
-    % xlabel(ax(1),'Time [s]') % label x-axis
-    % ylabel(ax(1),'BPM') % label left y-axis
-    % ylabel(ax(2),'% O2') % label right y-axis
-    % ylim([30 200])
-    % ylim(ax(2),[60 110]);
-    % line(t,x,'Color','k')
-    % ax(1).XColor = 'k';
-    % ax(1).YColor = 'k';
-end
-
+    msgbox('Please ile loaded', 'Status');

@@ -1,14 +1,10 @@
-clear all
-close all
-clc
+function [avg_pulse, y, BPM] = func_pulsecalc(Y, Fs)
+%UNTITLED Summary of this function goes here
+%   Detailed explanation goes here
 
 % [Y, Fs]=audioread('wrist1.wav');
-% X=Y(:,1);
-% y=Filter_PPG(X);
-
-load('C:\Users\Patrik\Documents\MATLAB\data\0128_8min.mat')
-y=signal.pleth.y;
-Fs=param.samplingrate.pleth;
+X=Y(:,1);
+y=Filter_PPG(X);
 
 ptp_time=0;
 five_pulses=60*ones(1,5);
@@ -41,19 +37,21 @@ for i=1:(length(y)-k*2)
         end
 end
 
+BPM = mean(avg_pulse);
 
-
-figure(444)
-subplot(2,1,1)
-plot(y)
-hold on
-plot(peakmatch,'r'); title('filtered signal with peaks identified');
-scatter(peaktime(2:end),peaks(2:end),'k','o')
-hold off
-subplot(2,1,2)
-hold
-plot(avg_pulse); title('pulse')
-if Fs~=1000
-    plot(reference.hr.pleth.y,'r')
-    legend('average pulse', 'reference pulse')
+% figure(444)
+% subplot(2,1,1)
+% plot(y)
+% hold on
+% plot(peakmatch,'r'); title('filtered signal with peaks identified');
+% scatter(peaktime(2:end),peaks(2:end),'k','o')
+% hold off
+% subplot(2,1,2)
+% hold
+% plot(avg_pulse); title('pulse')
+% if Fs~=1000
+%     plot(reference.hr.pleth.y,'r')
+%     legend('average pulse', 'reference pulse')
+% end
 end
+
