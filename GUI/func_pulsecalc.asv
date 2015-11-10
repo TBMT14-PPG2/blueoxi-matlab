@@ -1,4 +1,4 @@
-function [avg_pulse, y_r, BPM, S, S_avg] = func_pulsecalc(Y, Fs)
+function [avg_pulse, y_r, BPM] = func_pulsecalc(Y, Fs)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -43,14 +43,12 @@ BPM = round(mean(avg_pulse));
 
 
 % Saturation calculation
-mya_r_Hb=1.819915; %660nm
+mya_r_hb=1.819915; %660nm
 mya_r_HbO2=1.802677e-1; %660nm
-mya_ir_Hb = 3.91129e-1; %940nm
+mya_ir_hb = 3.91129e-1; %940nm
 mya_ir_HbO2 = 6.847467e-1; %940nm
 R = (AC_r./DC_r)./(AC_ir./DC_ir);
-S = (mya_r_Hb - R.*mya_ir_Hb)./(R.*(mya_ir_HbO2 - mya_ir_Hb) - mya_r_HbO2 + mya_r_Hb)*100;
-
-S_avg = round(mean(S));
+S = (mya_01 - R*mya_02)/(R*(mya_12 - mya_02) - mya_11 + mya_01);
 
 % figure(444)
 % subplot(2,1,1)

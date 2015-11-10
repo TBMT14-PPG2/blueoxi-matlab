@@ -67,15 +67,6 @@ g= imread('Logo.png');
 axes(handles.logo)
 imshow(g);
 
-%Display the value of the maximum pulse in tag max_pulse_value
-S = sprintf('%d', 60);
-set(handles.max_pulse_value, 'String', S);
-
-%Display the value of the current oxy_sat in tag oxy_value
-S = sprintf('%d', 98);
-set(handles.oxy_value, 'String', S);
-
-
 % % Try to change the size on the toolbar
 % hToolbar = findall(gcf,'tag','FigureToolBar');
 % jToolbar = get(get(hToolbar,'JavaContainer'),'ComponentPeer');
@@ -118,30 +109,43 @@ function play_Callback(hObject, eventdata, handles)
 
 if handles.signal_loaded==0
     msgbox('Please load a file');
-    return
-else
-    [avg_pulse, sig, BPM]=func_pulsecalc(handles.signal, handles.Fs);
+    return    
+end
+
+for i=1:100:length(handles.signal)
+    tic;
+    timer=tic;
+
+    [avg_pulse, sig, BPM, S, S_avg]=func_pulsecalc(handles.signal, handles.Fs);
     t=[0:1/handles.Fs:10];
     plot(handles.waveform_graph,t,sig(1:length(t)));
     
     %Display the value of the current pulse in tag pulse_value
     set(handles.pulse_value, 'String', BPM);
     
+    %Display the value of the maximum pulse in tag max_pulse_value
+    % S = sprintf('%d', 60);
+    % set(handles.max_pulse_value, 'String', S);
+    
+    %Display the value of the current oxy_sat in tag oxy_value
+    % S = sprintf('%d', 98);
+    set(handles.oxy_value, 'String', S_avg);
+    
     %Show BPM and O2 in axes2 with tag oxy_graph
     axes(handles.oxy_graph)
-    x=60:0.001:61;
-    y=97:0.002:99;
     le=1:length(avg_pulse);
-    t1=0:1000;
-    plot(le,avg_pulse);
-    %[ax,p1,p2] = plotyy(t,avg_pulse,t1,y,'semilogy','plot');
-    % xlabel(ax(1),'Time [s]') % label x-axis
-    % ylabel(ax(1),'BPM') % label left y-axis
-    % ylabel(ax(2),'% O2') % label right y-axis
-    % ylim([30 200])
-    % ylim(ax(2),[60 110]);
-    % line(t,x,'Color','k')
-    % ax(1).XColor = 'k';
-    % ax(1).YColor = 'k';
+    le_s=1:length(S);
+    [ax,p1,p2] = plotyy(le,avg_pulse,le_s,S,'semilogy','plot');
+    xlabel(ax(1),'Time [s]') % label x-axis
+    ylabel(ax(1),'BPM') % label left y-axis
+    ylabel(ax(2),'% O2') % label right y-axis
+%     ylim([30 200])
+%     ylim(ax(2),[60 110]);
+    line(le,avg_pulse,'Color','k')
+    ax(1).XColor = 'k';
+    ax(1).YColor = 'k';
+%     line(le_s,S,'Color','r')
+%     ax(2).XColor = 'r';
+%     ax(2).YColor = 'r';
 end
 
