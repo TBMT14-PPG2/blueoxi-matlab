@@ -1,10 +1,9 @@
-function [ filtered_signal2, AC, DC ] = Filter_PPG( signal )
+function [ Y, AC, DC ] = Filter_PPG( signal )
 close all
 
-figure
-plot(signal)
 
-    n=80;
+
+    n=200;
     
     filtered_signal=zeros(1,length(signal)-n);
 
@@ -13,11 +12,7 @@ plot(signal)
         filtered_signal(i)=mean(signal(i:i+n));
 
     end
-    figure
-    subplot(2,1,1)
-    plot(signal)
-    subplot(2,1,2)
-    plot(filtered_signal)
+
 
     
     k=800;
@@ -42,15 +37,21 @@ plot(signal)
     
     end
     filtered_signal2=filtered_signal2+abs(min(filtered_signal2));
+    Y=max(filtered_signal2)-filtered_signal2;  %flip signal
     
     figure
-    subplot(2,1,1)
+    subplot(3,1,1)
+    plot(signal)
+    axis([0 length(signal) min(signal) max(signal)])
+    subplot(3,1,2)
     plot(filtered_signal)
+    axis([0 length(filtered_signal) min(filtered_signal) max(filtered_signal)])
     hold;
     plot(DC+AC,'G')
     plot(DC,'R')
 
-    subplot(2,1,2)
+    subplot(3,1,3)
     plot(filtered_signal2)
-    
+    axis([0 length(Y) min(Y) max(Y)])
+   
 end
