@@ -1,0 +1,93 @@
+clear all
+close all
+delete(instrfindall);
+
+serialPort = 'COM3';            
+plotTitle = 'USB data';  
+xLabel = 'Time [S]';   
+yLabel = 'Amplitude';        
+Min = -15;                    
+Max = 15;                      
+timeint = 10;  %Time interval displayed in graph             
+delay = .0000001;                   
+ 
+elements_saved=160; %nr of elemetns saved and used for calculation
+k=round(elements_saved/2);
+LP=zeros(1,elements_saved); %vector to make calculations on
+time = 0;
+data = 0;
+count = k;
+
+ptp_time=0;
+lastpeaktime=0;
+five_pulses=60*ones(1,5);
+avg_pulse=60;
+
+plotGraph = plot(time,data,'-k',...
+                'LineWidth',1.5,...
+                'MarkerEdgeColor','k',...
+                'MarkerFaceColor',[.49 1 .63],...
+                'MarkerSize',2);
+            
+             
+title(plotTitle,'FontSize',15);
+xlabel(xLabel,'FontSize',8);
+ylabel(yLabel,'FontSize',8);
+axis([0 10 Min Max]);
+
+s = serial(serialPort);
+fopen(s);
+tic
+
+fprintf(s,'a');
+while ishandle(plotGraph) %Loop when Plot is Active
+    
+    USB_Data = fscanf(s,'%e'); %Read Data from Serial as Float
+    
+    LP=[LP(2:end) USB_Data(1)]; 
+    value=mean(LP(k-4:k+3)); %averaging over 8 data samples
+    DC_val=min(LP);
+    AC_val=max(LP)-DC_val;
+    filtval(count+1)=value-DC_val-AC_val/2; %remove most of baseline wander
+    DC(count+1)=DC_val;
+    AC(count+1)=AC_val;
+    peakmatch=AC_val+DC_val; %max(LP)
+    
+   
+   
+    if(~isempty(USB_Data) && isfloat(USB_Data)) %CHack correct data from USB       
+        count = count + 1;  %increases for each data received
+        time(count) = toc;  %set time
+        data(count) = filtval(count); %set data to filtered value
+        
+         
+        %Set Axis according to Scroll Width
+        if(timeint > 0)
+        set(plotGraph,'XData',time(time > time(count)-timeint),'YData',data(time > time(count)-timeint));
+        axis([time(count)-timeint time(count) Min Max]);
+        
+            % Check for peak
+            if ( filtval(count-10)>=max(filtval(count-9:count)) && ...
+                 filtval(count-10)>max(filtval((count-60):(count-11))) &&...
+                 time(count-10)>lastpeaktime+0.5 ) 
+                hold on
+                scatter(time(count-10),data(count-10),'or')
+                lastpeaktime=time(count-10);
+                ptp_time = [ptp_time lastpeaktime];
+                five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
+                avg_pulse=[avg_pulse mean(five_pulses)];
+                Pulse=avg_pulse(end)
+            end
+   
+        else
+        set(plotGraph,'XData',time,'YData',data);
+        axis([0 time(count) Min Max]);
+        end
+         
+      
+        pause(delay);
+    end
+end
+ 
+%Close Serial COM Port and Delete useless Variables
+fclose(s);
