@@ -112,14 +112,17 @@ if handles.signal_loaded==0
     return    
 end
 
-for i=1:100:length(handles.signal)
-    tic;
-    timer=tic;
+% for i=1:handles.Fs/10:(length(handles.signal)-handles.Fs/10)
+%     tic;
+%     timer=tic;
 
     [avg_pulse, sig, BPM, S, S_avg]=func_pulsecalc(handles.signal, handles.Fs);
-    t=[0:1/handles.Fs:10];
-    plot(handles.waveform_graph,t,sig(1:length(t)));
-    
+%    t=[0:1/handles.Fs:(length(sig)-1)/handles.Fs];
+         t=[0:1/handles.Fs:10];
+%     sig=1:length(t);
+%     plot(handles.waveform_graph,t(i:i+100),sig(i:i+handles.Fs/10));
+     plot(handles.waveform_graph,t, sig(1:length(t)));
+     
     %Display the value of the current pulse in tag pulse_value
     set(handles.pulse_value, 'String', BPM);
     
@@ -147,5 +150,7 @@ for i=1:100:length(handles.signal)
 %     line(le_s,S,'Color','r')
 %     ax(2).XColor = 'r';
 %     ax(2).YColor = 'r';
-end
+
+% pause(1/(handles.Fs/10) - toc(timer));
+% end
 

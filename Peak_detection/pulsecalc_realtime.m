@@ -2,7 +2,7 @@ clear all
 close all
 clc
 
-[Y, Fs]=audioread('wrist1.wav');
+[Y, Fs]=audioread('palm.wav');
 X=Y(:,1);
 y=Filter_PPG(X);
 
