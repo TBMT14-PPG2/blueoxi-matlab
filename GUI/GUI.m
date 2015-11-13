@@ -108,7 +108,125 @@ function play_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if handles.signal_loaded==0
-    msgbox('Please load a file');
+     delete(instrfindall);
+
+    serialPort = 'COM3';            
+
+    Min_waveform = -10;                    
+    Max_waveform = 10;
+    Min_pulse = 0;                    
+    Max_pulse = 150;
+   
+    timeint = 10;
+    delay = .0000001;                   
+
+    elements_saved=160; %nr of elemetns saved and used for calculation
+    k=round(elements_saved/3);
+    LP=zeros(1,elements_saved); %vector to make calculations on
+    time = 0;
+    data = 0;
+    count = 2*k;
+
+    ptp_time=0;
+    lastpeaktime=0;
+    five_pulses=60*ones(1,5);
+    avg_pulse=60;
+    Pulse=60;
+    PercentageOfMax=0;
+    
+    %Set graph properties
+    
+    axes(handles.oxy_graph)
+    handles.oxy_graph = plot(ptp_time,Pulse,'-k','LineWidth',1.5);
+    title('Pulse','FontSize',15);
+    xlabel('Time [S]','FontSize',8);
+    ylabel('BPM','FontSize',8);
+    axis([0 10 Min_pulse Max_pulse]);
+    
+    axes(handles.waveform_graph)
+    handles.waveform_graph = plot(time,data,'-k','LineWidth',1.5);
+    title('PPG Waveform','FontSize',15);
+    xlabel('Time [S]','FontSize',8);
+    ylabel('Amplitude','FontSize',8);
+    axis([0 10 Min_waveform Max_waveform]);
+
+    s = serial(serialPort);
+    fopen(s);
+    tic 
+    
+    
+    
+    fprintf(s,'a');
+    while ishandle(handles.waveform_graph) %Loop when Plot is Active
+
+        USB_Data = fscanf(s,'%e'); %Read Data from Serial as Float
+
+        LP=[LP(2:end) USB_Data(1)]; 
+        value=mean(LP(k-5:k+4)); %averaging over 10 data samples
+        DC_val=min(LP);
+        AC_val=max(LP)-DC_val;
+        filtval(count+1)=value-DC_val-AC_val/2; %remove most of baseline wander
+        DC(count+1)=DC_val;
+        AC(count+1)=AC_val;
+        peakmatch=AC_val+DC_val; %max(LP)
+
+
+
+        if(~isempty(USB_Data) && isfloat(USB_Data)) %Check if correct data from USB       
+            count = count + 1;  %increases for each data received
+            time(count) = toc;  %set time
+            data(count) = filtval(count); %set data to filtered value
+    %         data(count) = USB_Data(1);
+
+            %Set Axis according to Scroll Width
+            if(timeint > 0)
+            %axes(handles.waveform_graph)
+            set(handles.waveform_graph,'XData',time(time > time(count-k)-timeint),'YData',data(time > time(count-k)-timeint));
+            %plot(handles.waveform_graph,time(time > time(count-k)-timeint),data(time > time(count-k)-timeint));
+            axis([time(count-k)-timeint time(count-k) Min_waveform Max_waveform]);
+
+                % Check for peak
+                if ( filtval(count-k)>=max(filtval(count-(k-1):count)) && ...
+                     filtval(count-k)>max(filtval(count-2*k:count-(k+18))) &&...
+                     time(count-k)>lastpeaktime+round(30/Pulse(end)) ) 
+
+                    hold on
+                    scatter(time(count-k),data(count-k),'or','fill')
+                    lastpeaktime=time(count-k);
+                    ptp_time = [ptp_time lastpeaktime];
+                    five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
+                    avg_pulse=[avg_pulse mean(five_pulses)];
+                    Pulse=[Pulse round(avg_pulse(end))];
+                    PercentageOfMax=[PercentageOfMax round(1000*Pulse(end)/195)/10]; %max pulse=195 BPM
+                    
+                    set(handles.pulse_value, 'String', Pulse(end));
+                    set(handles.max_pulse_value, 'String', PercentageOfMax(end));
+                    
+                    %axes(handles.oxy_graph)
+                    %set(handles.oxy_graph,'CurrentAxes')
+                    %plot(handles.oxy_graph,'XData',ptp_time,'YData',Pulse);
+                    %axes(handles.waveform_graph)
+               
+                    
+                end
+                
+                
+            
+%             set(handles.oxy_graph,'XData',time,'YData',Pulse);
+%             axis([time(count-k)-timeint time(count-k) Min_waveform Max_waveform]);
+
+            else
+            set(plotGraph,'XData',time,'YData',data);
+            axis([0 time(count) Min_waveform Max_waveform]);
+            end
+
+
+            pause(delay);
+        end
+    end
+
+    %Close Serial COM Port
+    fclose(s);
     return    
 end
 
