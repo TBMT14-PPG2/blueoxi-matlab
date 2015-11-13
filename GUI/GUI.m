@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 10-Nov-2015 11:36:38
+% Last Modified by GUIDE v2.5 13-Nov-2015 11:25:06
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -230,6 +230,19 @@ if handles.signal_loaded==0
     return    
 end
 
+% Checks if the entered film length is a number
+if isnan(str2double(get(handles.age,'String'))) == 1
+    msgbox('Age must be a number')
+   return
+else
+    age =(str2double(get(handles.age, 'String')));
+    % Checks if the entered number is between 0 and 100 years
+    if age > 100 && age < 0
+        msgbox('Age must be between 0 and 100 years', 'Status');
+        return
+    end
+end
+
 % for i=1:handles.Fs/10:(length(handles.signal)-handles.Fs/10)
 %     tic;
 %     timer=tic;
@@ -242,21 +255,25 @@ end
      plot(handles.waveform_graph,t, sig(1:length(t)));
      
     %Display the value of the current pulse in tag pulse_value
+    set(handles.text20, 'String', 'Avg pulse bpm:');
     set(handles.pulse_value, 'String', BPM);
     
     %Display the value of the maximum pulse in tag max_pulse_value
+    max_pulse = 220-age;
+    percent_max_pulse = round(BPM/max_pulse*100);
     % S = sprintf('%d', 60);
-    % set(handles.max_pulse_value, 'String', S);
+    set(handles.max_pulse_value, 'String', percent_max_pulse);
     
     %Display the value of the current oxy_sat in tag oxy_value
     % S = sprintf('%d', 98);
+    set(handles.text21, 'String', 'Average SpO2:');
     set(handles.oxy_value, 'String', S_avg);
     
     %Show BPM and O2 in axes2 with tag oxy_graph
     axes(handles.oxy_graph)
     le=1:length(avg_pulse);
     le_s=1:length(S);
-    [ax,p1,p2] = plotyy(le,avg_pulse,le_s,S,'semilogy','plot');
+    [ax,p1,p2] = plotyy(le/handles.Fs,avg_pulse,le_s/handles.Fs,S,'semilogy','plot');
     xlabel(ax(1),'Time [s]') % label x-axis
     ylabel(ax(1),'BPM') % label left y-axis
     ylabel(ax(2),'% O2') % label right y-axis
@@ -272,3 +289,26 @@ end
 % pause(1/(handles.Fs/10) - toc(timer));
 % end
 
+
+
+
+function age_Callback(hObject, eventdata, handles)
+% hObject    handle to age (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of age as text
+%        str2double(get(hObject,'String')) returns contents of age as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function age_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to age (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
