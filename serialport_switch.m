@@ -15,7 +15,7 @@ sCnt=1;
 j=1;
 tempLrc=0;
 s1Cnt=1;
-bCnt=1;
+bCnt=0;
 byteCnt=1;
 plotCnt=0;
 
@@ -77,10 +77,10 @@ for i = 1:20000
                     tempLrc = tempLrc + byte;
                     
                     if sCnt==1
-                        sample(j)=byte*256;
+                        sample(j)=byte; %*256;
                         sCnt=sCnt+1;
                     elseif sCnt==2
-                        sample(j)=sample(j)+byte; %*256;
+                        sample(j)=sample(j)+byte*256;
                         sCnt=1;
                         j=j+1;
                     end
