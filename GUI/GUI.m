@@ -379,6 +379,11 @@ irSig=[];
 sig_red=[];
 sig_ir=[];
 t=[];
+k=200;
+Fs=500;
+PercentageOfMax=0;
+five_pulses=60*ones(1,5);
+Pulse=60;
 
 axes(handles.waveform_graph) 
 handles.waveform_graph=plot(t,sig_red);
@@ -479,8 +484,8 @@ for i = 1:10000
                 irSig =[irSig ir];
                 
                 
-                if mod(plotCnt, 20)==0
-                Fs=500;
+                if mod(plotCnt, 5)==0
+               
                 filt=fir1(34, [0.5 20]/[Fs/2]);
                 y_red=filtfilt(filt,1,redSig(end-length(red)*20+1:end));
                 y_red=2^16-y_red;
@@ -490,15 +495,25 @@ for i = 1:10000
                 sig_ir = [sig_ir y_ir];
                     t=1:length(redSig);
 
-%                     [redSig, irSig]=function plot(self)
-%                      plot(t, redSig, t, irSig)
-                      plot(t, sig_red)%, t, sig_ir)
-                 %     set(handles.waveform_graph,'XData',t(end-length(red)*5+1:end),'YData',sig_red((end-length(red)*5+1:end)));
-  
-%                 set(handles.waveform_graph,'XData',t(t > t(end-length(red)*20+1)),'YData',sig_red(t > t(end-length(red)*20+1)));
- %                axis([t(end-length(red)*20+1) t(end) 0 10000])  
-                 % end
-                end
+%                    
+                  plot(t, sig_red)
+                  
+                  for i=1:500-k;
+                      
+                    if ( sig_red(i-k)>=max(sig_red(i-(k-1):i)) && ...
+                         sig_red(i-k)>=max(sig_red(i-2*k:i-(k+1))) &&...
+                         t>lastpeaktime+250 ) 
+
+                        hold on
+                        scatter(t(i-k),sig_red(i-k),'or','fill')
+                        five_pulses=[five_pulses(2:5) 60/(lastpeaktime-t)];
+                        lastpeaktime=t;
+                        Pulse=round(five_pulses);
+                        PercentageOfMax=round(1000*Pulse/195)/10; %max pulse=195 BPM
+
+                        set(handles.pulse_value, 'String', Pulse);
+                        set(handles.max_pulse_value, 'String', PercentageOfMax);
+                    end
                 
                 pause(0.0001)
                 plotCnt=plotCnt+1;
