@@ -501,11 +501,11 @@ while(1)
                     DCfull(i)=DC_red(end);
                     ACfull(i)=AC_red(end);
                     if i>1000
-                        DCfilt(i)=mean(DC_red(i-1000:i));
-                        ACfilt(i)=mean(AC_red(i-1000:i));
+                        DCfilt(i)=mean(DCfull(i-1000:i));
+                        ACfilt(i)=mean(ACfull(i-1000:i));
                     else
-                        DCfilt(i)=mean(DC_red(1:i));
-                        ACfilt(i)=mean(AC_red(1:i));
+                        DCfilt(i)=mean(DCfull(1:i));
+                        ACfilt(i)=mean(ACfull(1:i));
                     end
                 end
                 count=t(end)*500;
