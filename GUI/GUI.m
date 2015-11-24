@@ -386,21 +386,23 @@ Pulse=60;
 lastpeaktime=0;
 peaks1=[0;0];
 t=[0:1/500:35/500];
-sig_red=t;
 filt=fir1(34, [0.5 10]/(Fs/2));
 redSig=zeros(1,35);
 filtered=t;
 count=0;
 ptp_time=0;
-AC=0;
-DC=0;
-DC_time=0;
-
+AC_red=0;
+DC_red=0;
+ACfull=0;
+DCfull=0;
+AC_IR=0;
+DC_IR=0;
+R=0;
 
 axes(handles.waveform_graph) 
 handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
 
-for i = 1:inf
+while(1)
     
     if s.BytesAvailable > 0
        byte_array=fread(s, s.BytesAvailable, 'uchar'); 
@@ -487,55 +489,39 @@ for i = 1:inf
                              
                 red=sample(1:2:end);
                 ir=sample(2:2:end);
-                
-%                 red=filter_PPG(red);
-%                 ir=filter_PPG(ir);
-
-                
                 redSig=[redSig red];
                 irSig =[irSig ir];
                 
                if mod(plotCnt, 1)==0
                
-               
-                %y_red=filtfilt(filt,1,redSig(end-length(red)*5+1:end));
-                
                 for i=length(redSig)-length(red)-length(filt)+1:length(redSig)-length(filt)
                     filtered(i)=sum(redSig(i:i+length(filt)-1).*filt);
+                    %filteredIR(i)=sum(irSig(i:i+length(filt)-1).*filt);
                     t(i)=i/500;
-                    if ptp_time(end) ~= 0
-                        AC(i)=filtered(ptp_time(end)*500);
+                    DCfull(i)=DC_red(end);
+                    ACfull(i)=AC_red(end);
+                    if i>1000
+                        DCfilt(i)=mean(DC_red(i-1000:i));
+                        ACfilt(i)=mean(AC_red(i-1000:i));
+                    else
+                        DCfilt(i)=mean(DC_red(1:i));
+                        ACfilt(i)=mean(AC_red(1:i));
                     end
                 end
                 count=t(end)*500;
             
-               
-               save filtered filtered AC
-                     
-                %y_red=conv(filt, [sig_red(end-35:end) redSig(1:end-36)])
-                %y_red=2^16-y_red;
-                %sig_red = [sig_red y_red];
-                
-                %y_ir=filtfilt(filt,1,irSig(end-length(ir)*5+1:end));
-                %sig_ir = [sig_ir y_ir];
-                 %   t=1:length(redSig);
-                  if (length(filtered)>=2001 && length(t)>=2001)
+                save filtered filtered AC_red DC_red AC_IR DC_IR redSig irSig ACfull DCfull ACfilt DCfilt
 
-                      %plot(t, sig_red)
-                      set(handles.waveform_graph,'XData',t(t > t(end-2000+1)),'YData',2^16-filtered(t>t(end-2000+1)))
-                      %plot(t(end-250+1:end),t(end-250+1:end))
-                      axis([t(end-2000+1) t(end) min(2^16-filtered(end-2000:end))-2 max(2^16-filtered(end-2000:end))+2])
-                  end
-                  
+                     if t(end)>3
+                     
+                     set(handles.waveform_graph,'XData',t(t > t(end-2000+1)),'YData',2^16-filtered(t>t(end-2000+1)))
+                     axis([t(end-2000+1) t(end) min(2^16-filtered(end-2000:end))-2 max(2^16-filtered(end-2000:end))+2])
              
-                  if t(end)>5
-                      
-                 
                      for i=count-length(red)-k:count-k
                       
                         if ( ( 2^16-filtered(i-k)>=max(2^16-filtered(i-k+1:i)) )  && ...
                            (  2^16-filtered(i-k)>=max(2^16-filtered(i-2*k:i-k-1)) ) && ...
-                           ( t(i-k)>lastpeaktime+30/Pulse(end) )) 
+                           ( t(i-k)>lastpeaktime+30/Pulse(end) ))
                             
                             hold on
                             scatter(t(i-k),2^16-filtered(i-k),'or','fill')
@@ -544,41 +530,28 @@ for i = 1:inf
                             five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
                             Pulse=[Pulse round(mean(five_pulses))];
                             PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/195)]; %max pulse=195 BPM
-%                             AC=[AC filtered(i-k)];
-%                             save AC AC ptp_time
+                            AC_red=[AC_red max(2^16-redSig(i-500:end))];
+                            DC_red=[DC_red min(2^16-redSig(i-500:end))];
+                            AC_IR=[AC_IR max(2^16-irSig(i-500:end))];
+                            DC_IR=[DC_IR min(2^16-irSig(i-500:end))];
+                            R=[R (AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end))];
 
                             set(handles.pulse_value, 'String', Pulse(end));
                             set(handles.max_pulse_value, 'String', PercentageOfMax(end));
                             plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r','LineWidth',1.5);
-                            
-                        else if ( ( 2^16-filtered(i-k)<=min(2^16-filtered(i-k+1:i)) )  && ...
-                                ( 2^16-filtered(i-k)<=min(2^16-filtered(i-2*k:i-k-1)) ) && ...
-                                ( t(i-k)>lastpeaktime+30/Pulse(end) )) 
-                       
-                            DC=[DC filtered(i-k)];
-                            DC_time=[DC_time t(i-k)];
-                            save DC DC DC_time
-                         
-                            end
-                                
-                            
                         end
-
-                  end
+                     end
                   end
                end
-                  pause(0.0001)
+                pause(0.0001)
                 plotCnt=plotCnt+1;
-                               
                 state=1;
                                   
             otherwise
                 disp('done')
         end
-        
     end
 end
-save sig_red.mat sig_red redSig;
 
 fclose(s);
 delete(s);
