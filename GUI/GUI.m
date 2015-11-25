@@ -199,27 +199,30 @@ if handles.signal_loaded==0
             axis([time(count-k)-timeint time(count-k) Min_waveform Max_waveform]);
 
                 % Check for peak
-                if ( filtval(count-k)>=max(filtval(count-(k-1):count)) && ...
-                     filtval(count-k)>max(filtval(count-2*k:count-(k+18))) &&...
-                     time(count-k)>lastpeaktime+round(30/Pulse(end)) ) 
+                if( filtval(count-k)>=filtval(count-k-1) && ...
+                    filtval(count-k)>=filtval(count-k+1) )
+                    if ( filtval(count-k)>=max(filtval(count-(k-1):count)) && ...
+                         filtval(count-k)>max(filtval(count-2*k:count-(k+18))) &&...
+                         time(count-k)>lastpeaktime+round(30/Pulse(end)) ) 
 
-                    hold on
-                    scatter(time(count-k),data(count-k),'or','fill')
-                    lastpeaktime=time(count-k);
-                    ptp_time = [ptp_time lastpeaktime];
-                    five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
-                    avg_pulse=[avg_pulse mean(five_pulses)];
-                    Pulse=[Pulse round(avg_pulse(end))];
-                    PercentageOfMax=[PercentageOfMax round(1000*Pulse(end)/195)/10]; %max pulse=195 BPM
-                    
-                    set(handles.pulse_value, 'String', Pulse(end));
-                    set(handles.max_pulse_value, 'String', PercentageOfMax(end));
-                    
-                    %axes(handles.oxy_graph)
-                    %set(handles.oxy_graph,'CurrentAxes')
-                    %plot(handles.oxy_graph,'XData',ptp_time,'YData',Pulse);
-                    %axes(handles.waveform_graph)
-                           
+                        hold on
+                        scatter(time(count-k),data(count-k),'or','fill')
+                        lastpeaktime=time(count-k);
+                        ptp_time = [ptp_time lastpeaktime];
+                        five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
+                        avg_pulse=[avg_pulse mean(five_pulses)];
+                        Pulse=[Pulse round(avg_pulse(end))];
+                        PercentageOfMax=[PercentageOfMax round(1000*Pulse(end)/195)/10]; %max pulse=195 BPM
+
+                        set(handles.pulse_value, 'String', Pulse(end));
+                        set(handles.max_pulse_value, 'String', PercentageOfMax(end));
+
+                        %axes(handles.oxy_graph)
+                        %set(handles.oxy_graph,'CurrentAxes')
+                        %plot(handles.oxy_graph,'XData',ptp_time,'YData',Pulse);
+                        %axes(handles.waveform_graph)
+
+                    end
                 end
              
 %             set(handles.oxy_graph,'XData',time,'YData',Pulse);
@@ -397,7 +400,9 @@ ACfull=0;
 DCfull=0;
 AC_IR=0;
 DC_IR=0;
-R=0;
+R=1;
+tenR=ones(1,10);
+Rlength=0;
 
 axes(handles.waveform_graph) 
 handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
@@ -495,53 +500,53 @@ while(1)
                if mod(plotCnt, 1)==0
                
                 for i=length(redSig)-length(red)-length(filt)+1:length(redSig)-length(filt)
-                    filtered(i)=sum(redSig(i:i+length(filt)-1).*filt);
+                    filtered(i)=2^16-sum(redSig(i:i+length(filt)-1).*filt);
                     %filteredIR(i)=sum(irSig(i:i+length(filt)-1).*filt);
                     t(i)=i/500;
-                    DCfull(i)=DC_red(end);
-                    ACfull(i)=AC_red(end);
-                    if i>1000
-                        DCfilt(i)=mean(DCfull(i-1000:i));
-                        ACfilt(i)=mean(ACfull(i-1000:i));
-                    else
-                        DCfilt(i)=mean(DCfull(1:i));
-                        ACfilt(i)=mean(ACfull(1:i));
-                    end
+%                     DCfull(i)=DC_red(end);
+%                     ACfull(i)=AC_red(end);
+%                     if i>1000
+%                         DCfilt(i)=mean(DCfull(i-1000:i));
+%                         ACfilt(i)=mean(ACfull(i-1000:i));
+%                     else
+%                         DCfilt(i)=mean(DCfull(1:i));
+%                         ACfilt(i)=mean(ACfull(1:i));
+%                     end
                 end
-                count=t(end)*500;
+                count=round(t(end)*500);
             
-                save filtered filtered AC_red DC_red AC_IR DC_IR redSig irSig ACfull DCfull ACfilt DCfilt
+                save Data filtered AC_red DC_red AC_IR DC_IR redSig irSig R ptp_time t
 
-                     if t(end)>3
+                     if t(end)>4
                      
-                     set(handles.waveform_graph,'XData',t(t > t(end-2000+1)),'YData',2^16-filtered(t>t(end-2000+1)))
-                     axis([t(end-2000+1) t(end) min(2^16-filtered(end-2000:end))-2 max(2^16-filtered(end-2000:end))+2])
+                     set(handles.waveform_graph,'XData',t(t > t(end-2000+1)),'YData',filtered(t>t(end-2000+1)))
+                     axis([t(end-2000+1) t(end) min(filtered(end-2000:end))-2 max(filtered(end-2000:end))+2])
              
                      for i=count-length(red)-k:count-k
-                       if( filtval(count-k)>=filtval(count-k-1) && ...
-                          filtval(count-k)>=filtval(count-k+1) )
-                          if ( ( 2^16-filtered(i-k)>=max(2^16-filtered(i-k+1:i)) )  && ...
-                             (  2^16-filtered(i-k)>=max(2^16-filtered(i-2*k:i-k-1)) ) && ...
-                             ( t(i-k)>lastpeaktime+30/Pulse(end) ))
-                              
-                              hold on
-                              scatter(t(i-k),2^16-filtered(i-k),'or','fill')
-                              lastpeaktime=t(i-k);
-                              ptp_time = [ptp_time lastpeaktime];
-                              five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
-                              Pulse=[Pulse round(mean(five_pulses))];
-                              PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/195)]; %max pulse=195 BPM
-                              AC_red=[AC_red max(2^16-redSig(i-500:end))];
-                              DC_red=[DC_red min(2^16-redSig(i-500:end))];
-                              AC_IR=[AC_IR max(2^16-irSig(i-500:end))];
-                              DC_IR=[DC_IR min(2^16-irSig(i-500:end))];
-                              R=[R (AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end))];
-  
-                              set(handles.pulse_value, 'String', Pulse(end));
-                              set(handles.max_pulse_value, 'String', PercentageOfMax(end));
-                              plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r','LineWidth',1.5);
-                          end
+%                       if( filtered(i-k)>=filtered(i-k-1) && ...
+%                           filtered(i-k)>=filtered(i-k+1) )
+                        if ( ( filtered(i-k)>=max(filtered(i-k+1:i)) )  && ...
+                           (  filtered(i-k)>=max(filtered(i-2*k:i-k-1)) ) && ...
+                           ( t(i-k)>lastpeaktime+30/Pulse(end) ))
+                            
+                            hold on
+                            scatter(t(i-k),filtered(i-k),'or','fill')
+                            lastpeaktime=t(i-k);
+                            ptp_time = [ptp_time lastpeaktime];
+                            five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
+                            Pulse=[Pulse round(mean(five_pulses))];
+                            PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/195)]; %max pulse=195 BPM
+                            AC_red=[AC_red max(redSig(i-500:end-100))];
+                            DC_red=[DC_red min(redSig(i-500:end-100))];
+                            AC_IR=[AC_IR max(irSig(i-500:end-100))];
+                            DC_IR=[DC_IR min(irSig(i-500:end-100))];
+                            tenR=[tenR(2:10) ((AC_red(end)-DC_red(end))/DC_red(end))/((AC_IR(end)-DC_IR(end))/DC_IR(end))];
+                            R=[R mean(tenR)];
+                            set(handles.pulse_value, 'String', Pulse(end));
+                            set(handles.max_pulse_value, 'String', PercentageOfMax(end));
+                            plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r',ptp_time,R,'-b','LineWidth',1.5);
                         end
+                      %end
                      end
                   end
                end
