@@ -127,6 +127,7 @@ function play_Callback(hObject, eventdata, handles)
 
 if handles.signal_loaded==0
    msgbox('No signal loaded')
+   return
 end
 
 % Checks if the entered film length is a number
@@ -243,7 +244,58 @@ function record_Callback(hObject, eventdata, handles)
 % hObject    handle to record (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-RecordInit()
+ axes(handles.waveform_graph)
+    delete(instrfindall);
+    clear s;
+    instrreset;
+    s = tcpip('0.0.0.0', 2222, 'NetworkRole', 'server');
+
+    set(s, 'InputBufferSize', 256);
+    set(s, 'BaudRate', 115200);
+    fopen(s);
+
+    packet = zeros(1, 4);
+    pCnt = 1;
+    state = 1;
+    cnt = 0;
+    len = 0;
+    sCnt=1;
+    j=1;
+    tempLrc=0;
+    s1Cnt=1;
+    bCnt=0;
+    byteCnt=1;
+    plotCnt=1;
+
+    redSig=[];
+    irSig=[];
+    sig_red=[];
+    sig_ir=[];
+    k=150;
+    Fs=500;
+    age =(str2double(get(handles.age, 'String')));
+    MaxPulse=220-age
+    PercentageOfMax=round(1000*60/MaxPulse)/10;
+    five_pulses=60*ones(1,5);
+    Pulse=60;
+    lastpeaktime=0;
+    t=[0:1/500:35/500];
+    filt=fir1(34, [0.5 10]/(Fs/2));
+    redSig=zeros(1,35);
+    filtered=t;
+    count=0;
+    ptp_time=0;
+    AC_red=0;
+    DC_red=0;
+    ACfull=0;
+    DCfull=0;
+    AC_IR=0;
+    DC_IR=0;
+    R=1;
+    newR=1
+
+    axes(handles.waveform_graph) 
+    handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
 
 while(1)
     
@@ -364,7 +416,7 @@ while(1)
                             ptp_time = [ptp_time lastpeaktime];
                             five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
                             Pulse=[Pulse round(mean(five_pulses))];
-                            PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/195)]; %max pulse=195 BPM
+                            PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/MaxPulse)]; %max pulse=195 BPM
                             AC_red=[AC_red max(redSig(i-500:end-100))];
                             DC_red=[DC_red min(redSig(i-500:end-100))];
                             AC_IR=[AC_IR max(irSig(i-500:end-100))];
