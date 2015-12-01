@@ -292,7 +292,7 @@ function record_Callback(hObject, eventdata, handles)
     AC_IR=0;
     DC_IR=0;
     R=1;
-    newR=1
+    newR=1;
 
     axes(handles.waveform_graph) 
     handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
@@ -416,7 +416,7 @@ while(1)
                             ptp_time = [ptp_time lastpeaktime];
                             five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
                             Pulse=[Pulse round(mean(five_pulses))];
-                            PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/MaxPulse)]; %max pulse=195 BPM
+                            PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/MaxPulse)]; 
                             AC_red=[AC_red max(redSig(i-500:end-100))];
                             DC_red=[DC_red min(redSig(i-500:end-100))];
                             AC_IR=[AC_IR max(irSig(i-500:end-100))];
