@@ -146,7 +146,7 @@ plot(handles.waveform_graph,handles.time_sig,handles.signal);
 Ax = findall(0,'type','axes');
 axis(Ax(3),[0 10 min(handles.signal(100:5000)) max(handles.signal(100:5000))]);
 
-%Display the value of the average pulse in tag pulse_value
+%Display the value of the current average pulse in tag pulse_value
 set(handles.text20, 'String', 'Avg pulse bpm:');
 set(handles.pulse_value, 'String', mean(handles.pulse));
 
@@ -296,7 +296,7 @@ end
     AC_IR=0;
     DC_IR=0;
     R=1;
-    newR=1;
+    newR=1
 
     axes(handles.waveform_graph) 
     handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
@@ -420,7 +420,7 @@ while get(handles.stop,'Value') == 0
                             ptp_time = [ptp_time lastpeaktime];
                             five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
                             Pulse=[Pulse round(mean(five_pulses))];
-                            PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/MaxPulse)]; 
+                            PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/MaxPulse)]; %max pulse=195 BPM
                             AC_red=[AC_red max(redSig(i-500:end-100))];
                             DC_red=[DC_red min(redSig(i-500:end-100))];
                             AC_IR=[AC_IR max(irSig(i-500:end-100))];
@@ -429,10 +429,7 @@ while get(handles.stop,'Value') == 0
                             R=[R 0.8*R(end)+0.2*newR];
                             set(handles.pulse_value, 'String', Pulse(end));
                             set(handles.max_pulse_value, 'String', PercentageOfMax(end));
-                            %plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r',ptp_time,R,'-b','LineWidth',1.5);
-                            hAx=plotyy(handöes.oxy_graph,ptp_time,Pulse,'-k',tpt_time,Sat,'-r')
-                            ylabel(hAx(1),'Pulse [BPM]')
-                            ylabel(hAx(2),'Saturation [%]')
+                            plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r',ptp_time,R,'-b','LineWidth',1.5);
                         end
                       end
                      end
