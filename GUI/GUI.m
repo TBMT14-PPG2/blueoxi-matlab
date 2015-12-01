@@ -425,7 +425,10 @@ while(1)
                             R=[R 0.8*R(end)+0.2*newR];
                             set(handles.pulse_value, 'String', Pulse(end));
                             set(handles.max_pulse_value, 'String', PercentageOfMax(end));
-                            plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r',ptp_time,R,'-b','LineWidth',1.5);
+                            %plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r',ptp_time,R,'-b','LineWidth',1.5);
+                            hAx=plotyy(handöes.oxy_graph,ptp_time,Pulse,'-k',tpt_time,Sat,'-r')
+                            ylabel(hAx(1),'Pulse [BPM]')
+                            ylabel(hAx(2),'Saturation [%]')
                         end
                       end
                      end
