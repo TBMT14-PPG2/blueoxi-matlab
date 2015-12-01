@@ -171,6 +171,7 @@ ax(1).YColor = 'k';
 % ax(2).XColor = 'r';
 % ax(2).YColor = 'r';
 
+
 function age_Callback(hObject, eventdata, handles)
 % hObject    handle to age (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -443,10 +444,6 @@ clear s;
 
 % --- Executes on button press in Forward.
 function Forward_Callback(hObject, eventdata, handles)
-% hObject    handle to Forward (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
 % The forward button makes it possible to step forward in the signal
 Ax = findall(0,'type','axes');
 xl=xlim(Ax(4));
@@ -458,10 +455,6 @@ end
 
 % --- Executes on button press in backward.
 function backward_Callback(hObject, eventdata, handles)
-% hObject    handle to backward (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
 % The backward button makes it possible to step backward in the signal
 Ax = findall(0,'type','axes');
 xl=xlim(Ax(4));
@@ -471,18 +464,14 @@ if xl>0
     axis(Ax(4),[xl(1)-1 xl(2)-1 min_sig max_sig])
 end
 
-% --------------------------------------------------------------------
+%  --- Executes on button press in Exit.
+% By pressing exit button, the GUI window closes
 function exit_botton_Callback(hObject, eventdata, handles)
-% hObject    handle to exit_botton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 clc
 close all
 
-% --------------------------------------------------------------------
+% --- Executes on button press in Help.
+% By pressing help button, a pdf file appears
 function help_botton_Callback(hObject, eventdata, handles)
-% hObject    handle to help_botton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 winopen('hej.pdf')
 

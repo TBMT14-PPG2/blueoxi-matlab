@@ -1,13 +1,15 @@
 clear
 close all
-load('0123_8min.mat')
-
+load('0104_8min.mat')
+% [y, Fs]=audioread('Data2.wav');
+% y = data;
 y=signal.pleth.y; %samples
 Fs=param.samplingrate.pleth;
 ref=reference.hr.pleth.x; % the refernace signal
 N=length(y); % sample length
 T = 1/Fs; %period
 t = (0:N-1)*T; %seconds
+
 
 % Calculate the first difference of the filtered signal
 y_d = y(1:N-1) - y(2:N);
@@ -95,4 +97,4 @@ pulse_ref=mean(pulse_real_ref(3:end))
 figure(2)
 plot(ptp_time(1:L-1),pulse_real_time, 'b',ref(1:l_ref-1), pulse_real_ref, 'r')
 
-
+max_maxpoint = findpeaks(crawler);
