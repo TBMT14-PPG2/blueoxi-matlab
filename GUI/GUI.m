@@ -126,120 +126,7 @@ function play_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if handles.signal_loaded==0
-     delete(instrfindall);
-
-    serialPort = 'COM3';            
-
-    Min_waveform = -10;                    
-    Max_waveform = 10;
-    Min_pulse = 0;                    
-    Max_pulse = 150;
-   
-    timeint = 10;
-    delay = .0000001;                   
-
-    elements_saved=160; %nr of elemetns saved and used for calculation
-    k=round(elements_saved/3);
-    LP=zeros(1,elements_saved); %vector to make calculations on
-    time = 0;
-    data = 0;
-    count = 2*k;
-
-    ptp_time=0;
-    lastpeaktime=0;
-    five_pulses=60*ones(1,5);
-    avg_pulse=60;
-    Pulse=60;
-    PercentageOfMax=0;
-    
-    %Set graph properties
-    axes(handles.oxy_graph)
-    handles.oxy_graph = plot(ptp_time,Pulse,'-k','LineWidth',1.5);
-    title('Pulse','FontSize',15);
-    xlabel('Time [S]','FontSize',8);
-    ylabel('BPM','FontSize',8);
-    axis([0 10 Min_pulse Max_pulse]);
-    
-    axes(handles.waveform_graph)
-    handles.waveform_graph = plot(time,data,'-k','LineWidth',1.5);
-    title('PPG Waveform','FontSize',15);
-    xlabel('Time [S]','FontSize',8);
-    ylabel('Amplitude','FontSize',8);
-    axis([0 10 Min_waveform Max_waveform]);
-
-    s = serial(serialPort);
-    fopen(s);
-    tic 
-    
-    fprintf(s,'a');
-    while ishandle(handles.waveform_graph) %Loop when Plot is Active
-
-        USB_Data = fscanf(s,'%e'); %Read Data from Serial as Float
-
-        LP=[LP(2:end) USB_Data(1)]; 
-        value=mean(LP(k-5:k+4)); %averaging over 10 data samples
-        DC_val=min(LP);
-        AC_val=max(LP)-DC_val;
-        filtval(count+1)=value-DC_val-AC_val/2; %remove most of baseline wander
-        DC(count+1)=DC_val;
-        AC(count+1)=AC_val;
-        peakmatch=AC_val+DC_val; %max(LP)
-
-        if(~isempty(USB_Data) && isfloat(USB_Data)) %Check if correct data from USB       
-            count = count + 1;  %increases for each data received
-            time(count) = toc;  %set time
-            data(count) = filtval(count); %set data to filtered value
-    %         data(count) = USB_Data(1);
-
-            %Set Axis according to Scroll Width
-            if(timeint > 0)
-            %axes(handles.waveform_graph)
-            set(handles.waveform_graph,'XData',time(time > time(count-k)-timeint),'YData',data(time > time(count-k)-timeint));
-            %plot(handles.waveform_graph,time(time > time(count-k)-timeint),data(time > time(count-k)-timeint));
-            axis([time(count-k)-timeint time(count-k) Min_waveform Max_waveform]);
-
-                % Check for peak
-                if( filtval(count-k)>=filtval(count-k-1) && ...
-                    filtval(count-k)>=filtval(count-k+1) )
-                    if ( filtval(count-k)>=max(filtval(count-(k-1):count)) && ...
-                         filtval(count-k)>max(filtval(count-2*k:count-(k+18))) &&...
-                         time(count-k)>lastpeaktime+round(30/Pulse(end)) ) 
-
-                        hold on
-                        scatter(time(count-k),data(count-k),'or','fill')
-                        lastpeaktime=time(count-k);
-                        ptp_time = [ptp_time lastpeaktime];
-                        five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
-                        avg_pulse=[avg_pulse mean(five_pulses)];
-                        Pulse=[Pulse round(avg_pulse(end))];
-                        PercentageOfMax=[PercentageOfMax round(1000*Pulse(end)/195)/10]; %max pulse=195 BPM
-
-                        set(handles.pulse_value, 'String', Pulse(end));
-                        set(handles.max_pulse_value, 'String', PercentageOfMax(end));
-
-                        %axes(handles.oxy_graph)
-                        %set(handles.oxy_graph,'CurrentAxes')
-                        %plot(handles.oxy_graph,'XData',ptp_time,'YData',Pulse);
-                        %axes(handles.waveform_graph)
-
-                    end
-                end
-             
-%             set(handles.oxy_graph,'XData',time,'YData',Pulse);
-%             axis([time(count-k)-timeint time(count-k) Min_waveform Max_waveform]);
-
-            else
-            set(plotGraph,'XData',time,'YData',data);
-            axis([0 time(count) Min_waveform Max_waveform]);
-            end
-
-            pause(delay);
-        end
-    end
-
-    %Close Serial COM Port
-    fclose(s);
-    return    
+   msgbox('No signal loaded')
 end
 
 % Checks if the entered film length is a number
@@ -356,56 +243,7 @@ function record_Callback(hObject, eventdata, handles)
 % hObject    handle to record (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-axes(handles.waveform_graph)
-delete(instrfindall);
-s = serial('COM4');
-
-set(s, 'InputBufferSize', 256);
-set(s, 'BaudRate', 115200);
-fopen(s);
-
-packet = zeros(1, 4);
-pCnt = 1;
-state = 1;
-cnt = 0;
-len = 0;
-sCnt=1;
-j=1;
-tempLrc=0;
-s1Cnt=1;
-bCnt=0;
-byteCnt=1;
-plotCnt=1;
-
-redSig=[];
-irSig=[];
-sig_red=[];
-sig_ir=[];
-k=150;
-Fs=500;
-PercentageOfMax=round(1000*60/195)/10;
-five_pulses=60*ones(1,5);
-Pulse=60;
-lastpeaktime=0;
-peaks1=[0;0];
-t=[0:1/500:35/500];
-filt=fir1(34, [0.5 10]/(Fs/2));
-redSig=zeros(1,35);
-filtered=t;
-count=0;
-ptp_time=0;
-AC_red=0;
-DC_red=0;
-ACfull=0;
-DCfull=0;
-AC_IR=0;
-DC_IR=0;
-R=1;
-tenR=ones(1,10);
-Rlength=0;
-
-axes(handles.waveform_graph) 
-handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
+RecordInit()
 
 while(1)
     
@@ -503,15 +341,6 @@ while(1)
                     filtered(i)=2^16-sum(redSig(i:i+length(filt)-1).*filt);
                     %filteredIR(i)=sum(irSig(i:i+length(filt)-1).*filt);
                     t(i)=i/500;
-%                     DCfull(i)=DC_red(end);
-%                     ACfull(i)=AC_red(end);
-%                     if i>1000
-%                         DCfilt(i)=mean(DCfull(i-1000:i));
-%                         ACfilt(i)=mean(ACfull(i-1000:i));
-%                     else
-%                         DCfilt(i)=mean(DCfull(1:i));
-%                         ACfilt(i)=mean(ACfull(1:i));
-%                     end
                 end
                 count=round(t(end)*500);
             
@@ -523,11 +352,11 @@ while(1)
                      axis([t(end-2000+1) t(end) min(filtered(end-2000:end))-2 max(filtered(end-2000:end))+2])
              
                      for i=count-length(red)-k:count-k
-%                       if( filtered(i-k)>=filtered(i-k-1) && ...
-%                           filtered(i-k)>=filtered(i-k+1) )
+                         
+                       if t(i-k)>lastpeaktime+30/Pulse(end)
+                             
                         if ( ( filtered(i-k)>=max(filtered(i-k+1:i)) )  && ...
-                           (  filtered(i-k)>=max(filtered(i-2*k:i-k-1)) ) && ...
-                           ( t(i-k)>lastpeaktime+30/Pulse(end) ))
+                           (  filtered(i-k)>=max(filtered(i-2*k:i-k-1)) ) )
                             
                             hold on
                             scatter(t(i-k),filtered(i-k),'or','fill')
@@ -540,13 +369,13 @@ while(1)
                             DC_red=[DC_red min(redSig(i-500:end-100))];
                             AC_IR=[AC_IR max(irSig(i-500:end-100))];
                             DC_IR=[DC_IR min(irSig(i-500:end-100))];
-                            tenR=[tenR(2:10) ((AC_red(end)-DC_red(end))/DC_red(end))/((AC_IR(end)-DC_IR(end))/DC_IR(end))];
-                            R=[R mean(tenR)];
+                            newR=((AC_red(end)-DC_red(end))/DC_red(end))/((AC_IR(end)-DC_IR(end))/DC_IR(end));
+                            R=[R 0.8*R(end)+0.2*newR];
                             set(handles.pulse_value, 'String', Pulse(end));
                             set(handles.max_pulse_value, 'String', PercentageOfMax(end));
                             plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r',ptp_time,R,'-b','LineWidth',1.5);
                         end
-                      %end
+                      end
                      end
                   end
                end
@@ -563,7 +392,6 @@ end
 fclose(s);
 delete(s);
 clear s;
-
 
 % --- Executes on button press in Forward.
 function Forward_Callback(hObject, eventdata, handles)
