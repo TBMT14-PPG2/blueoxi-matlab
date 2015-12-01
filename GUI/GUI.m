@@ -433,7 +433,6 @@ set(handles.text19, 'String', 'Avg percentage max pulse:');
 set(handles.max_pulse_value, 'String', mean(PercentageOfMax));
 
 %Display the value of the current oxy_sat in tag oxy_value
-% S = sprintf('%d', 98);
 set(handles.text21, 'String', 'Average SpO2:');
 set(handles.oxy_value, 'String', mean(R)); % Change to SpO2!!!
 
