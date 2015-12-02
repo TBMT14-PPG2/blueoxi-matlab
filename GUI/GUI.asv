@@ -116,10 +116,10 @@ else
     filename=uigetfile('*.mat');
       load(filename)
 %     handles.pulse = Pulse;
-    handles.pulse = AC_IR; % Change this so it is the actuall pulse!!!
-    handles.saturation = R; % Change to Saturation!
+    handles.pulse = AC_IR;
+    handles.saturation = R;
 %     handles.max_pulse = PercentageOfMax;
-    handles.max_pulse = AC_red; % Change this so it is the actuall pulse!!!
+    handles.max_pulse = AC_red;
     handles.time_peak = ptp_time;
     handles.time_sig = t;
     handles.signal = filtered;
@@ -158,6 +158,7 @@ set(handles.text19, 'String', 'Avg max pulse:');
 set(handles.max_pulse_value, 'String', mean(handles.max_pulse));
 
 %Display the value of the average oxy_sat in tag oxy_value
+% S = sprintf('%d', 98);
 set(handles.text21, 'String', 'Average SpO2:');
 set(handles.oxy_value, 'String', mean(handles.saturation));
 
@@ -174,7 +175,6 @@ ax(1).YColor = 'k';
 % ax(2).XColor = 'r';
 % ax(2).YColor = 'r';
 set(handles.play, 'Enable', 'off');
-
 
 function age_Callback(hObject, eventdata, handles)
 % hObject    handle to age (see GCBO)
@@ -208,9 +208,6 @@ delete(instrfindall);
 clear s;
 instrreset;
 s = tcpip('0.0.0.0', 2222, 'NetworkRole', 'server');
-
-% Maybe we want a messagebox that says that a recording is not possible or
-% something?!
 
 set(s, 'InputBufferSize', 256);
 set(s, 'BaudRate', 115200);
@@ -439,7 +436,7 @@ choice = questdlg('Do you like to save?', 'Save dialog');
 
 switch choice
     case 'Yes'
-        uisave({'filtered', 'ptp_time', 'Pulse', 'PercentageOfMax', 'R','t'}); % Save Sat instead of R!
+        uisave({'filtered', 'ptp_time', 'Pulse', 'PercentageOfMax', 'R','t'});
     case 'No'  
     case 'Cancel'
 end
@@ -463,6 +460,10 @@ clear s;
 
 % --- Executes on button press in Forward.
 function Forward_Callback(hObject, eventdata, handles)
+% hObject    handle to Forward (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
 % The forward button makes it possible to step forward in the signal
 Ax = findall(0,'type','axes');
 xl=xlim(Ax(4));
@@ -474,6 +475,10 @@ end
 
 % --- Executes on button press in backward.
 function backward_Callback(hObject, eventdata, handles)
+% hObject    handle to backward (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
 % The backward button makes it possible to step backward in the signal
 Ax = findall(0,'type','axes');
 xl=xlim(Ax(4));
@@ -483,14 +488,18 @@ if xl>0
     axis(Ax(4),[xl(1)-1 xl(2)-1 min_sig max_sig])
 end
 
-%  --- Executes on button press in Exit.
-% By pressing exit button, the GUI window closes
+% --------------------------------------------------------------------
 function exit_botton_Callback(hObject, eventdata, handles)
+% hObject    handle to exit_botton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 clc
 close all
 
-% --- Executes on button press in Help.
-% By pressing help button, a pdf file appears
+% --------------------------------------------------------------------
 function help_botton_Callback(hObject, eventdata, handles)
+% hObject    handle to help_botton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 winopen('hej.pdf')
 
