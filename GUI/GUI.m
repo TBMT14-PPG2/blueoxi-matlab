@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 01-Dec-2015 15:11:55
+% Last Modified by GUIDE v2.5 02-Dec-2015 13:49:07
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -63,7 +63,7 @@ guidata(hObject, handles);
 % uiwait(handles.figure1);
 
 %Show our logo in axes 4
-g= imread('Logo.png');
+g= imread('blueoxi_logo.png');
 axes(handles.logo)
 imshow(g);
 
@@ -493,4 +493,17 @@ close all
 % By pressing help button, a pdf file appears
 function help_botton_Callback(hObject, eventdata, handles)
 winopen('hej.pdf')
+
+
+
+% --- Executes on slider movement.
+function slider3_Callback(hObject, eventdata, handles)
+% hObject    handle to slider3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
 

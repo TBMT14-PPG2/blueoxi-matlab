@@ -1,6 +1,6 @@
 clear
 close all
-load('0104_8min.mat')
+load('0015_8min.mat')
 
 y=signal.pleth.y; %samples
 Fs=param.samplingrate.pleth;
@@ -95,4 +95,5 @@ pulse_ref=mean(pulse_real_ref(3:end))
 figure(2)
 plot(ptp_time(1:L-1),pulse_real_time, 'b',ref(1:l_ref-1), pulse_real_ref, 'r')
 
+min_maxpoint = findpeaks(crawler);
 

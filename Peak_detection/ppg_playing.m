@@ -1,9 +1,11 @@
 clear all
-load('0104_8min.mat')
-
-y=signal.pleth.y; %samples
-Fs=param.samplingrate.pleth;
-ref=reference.hr.pleth.x; % the refernace signal
+fs = 1000
+% load('0104_8min.mat')
+[y, Fs]=audioread('Data2.wav');
+ y = y(:,1);
+% y=signal.pleth.y; %samples
+% Fs=param.samplingrate.pleth;
+% ref=reference.hr.pleth.x; % the refernace signal
 
 % [b,a] = butter(2,[0.5 40]/(Fs/2), 'bandpass');
 % y = filtfilt(b,a,y);
@@ -136,17 +138,18 @@ for i=1:(L-1)
     pulse_real_time(i)=60/(ptp_time(i+1)-ptp_time(i));
 end
 
-l_ref=length(ref);
-for i=1:(l_ref-1)
-    pulse_real_ref(i)=60/(ref(i+1)-ref(i));
-end
+ % l_ref=length(ref);
+% for i=1:(l_ref-1)
+%     pulse_real_ref(i)=60/(ref(i+1)-ref(i));
+% end
     
 pulse=mean(pulse_real_time(3:end))
-pulse_ref=mean(pulse_real_ref(3:end))
+% pulse_ref=mean(pulse_real_ref(3:end))
 
+% figure(2)
+% plot(ptp_time(1:L-1),pulse_real_time, 'b',ref(1:l_ref-1), pulse_real_ref, 'r')
 figure(2)
-plot(ptp_time(1:L-1),pulse_real_time, 'b',ref(1:l_ref-1), pulse_real_ref, 'r')
-
+plot(ptp_time(1:L-1),pulse_real_time)
 
 %hej hej 
 
