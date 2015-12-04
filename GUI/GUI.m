@@ -167,9 +167,9 @@ axes(handles.oxy_graph)
 xlabel(ax(1),'Time [s]') % label x-axis
 ylabel(ax(1),'BPM') % label left y-axis
 ylabel(ax(2),'% O2') % label right y-axis
-line(handles.time_peak,handles.pulse,'Color','k')
-ax(1).XColor = 'k';
-ax(1).YColor = 'k';
+% line(handles.time_peak,handles.pulse,'Color','k')
+% ax(1).XColor = 'k';
+% ax(1).YColor = 'k';
 % line(handles.time_peak,handles.saturation,'Color','g')
 % ax(2).XColor = 'r';
 % ax(2).YColor = 'r';
@@ -212,9 +212,11 @@ s = tcpip('0.0.0.0', 2222, 'NetworkRole', 'server');
 % Maybe we want a messagebox that says that a recording is not possible or
 % something?!
 
-set(s, 'InputBufferSize', 256);
-set(s, 'BaudRate', 115200);
+set(s, 'InputBufferSize', 30000);
+set(s, 'Terminator', '');
+2
 fopen(s);
+1
 
 % Checks if the entered film length is a number
 if isnan(str2double(get(handles.age,'String'))) == 1
@@ -247,8 +249,8 @@ redSig=[];
 irSig=[];
 sig_red=[];
 sig_ir=[];
-k=150;
-Fs=500;
+k=300;
+Fs=1000;
 
 MaxPulse=220-age;
 PercentageOfMax=round(1000*60/MaxPulse)/10;
@@ -256,7 +258,7 @@ five_pulses=60*ones(1,5);
 Pulse=60;
 lastpeaktime=0;
 t=[0:1/500:35/500];
-filt=fir1(34, [0.5 10]/(Fs/2));
+filt=fir1(34, [0.5 8]/(Fs/2)); % fir1(34, [0.5 10]/(Fs/2));
 redSig=zeros(1,35);
 filtered=t;
 count=0;
@@ -275,7 +277,7 @@ handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
 
 % Gets the data from the device into matlab while stopped button is not
 % pressed.
-while get(handles.stop,'Value') == 0
+while get(handles.stop_buttom,'Value') == 0
     
     if s.BytesAvailable > 0
         byte_array=fread(s, s.BytesAvailable, 'uchar');
@@ -358,7 +360,7 @@ while get(handles.stop,'Value') == 0
                     state = 1;
                 end
                 
-            case 7
+            %case 7
                 
                 red=sample(1:2:end);
                 ir=sample(2:2:end);
@@ -370,16 +372,20 @@ while get(handles.stop,'Value') == 0
                     for i=length(redSig)-length(red)-length(filt)+1:length(redSig)-length(filt)
                         filtered(i)=2^16-sum(redSig(i:i+length(filt)-1).*filt);
                         %filteredIR(i)=sum(irSig(i:i+length(filt)-1).*filt);
-                        t(i)=i/500;
+                        t(i)=i/1000;
                     end
-                    count=round(t(end)*500);
+                    count=round(t(end)*1000);
                     
-                    save Data filtered AC_red DC_red AC_IR DC_IR redSig irSig R ptp_time t
+                   % save Data filtered AC_red DC_red AC_IR DC_IR redSig irSig R ptp_time t
                     
                     if t(end)>4
                         
-                        set(handles.waveform_graph,'XData',t(t > t(end-2000+1)),'YData',filtered(t>t(end-2000+1)))
-                        axis([t(end-2000+1) t(end) min(filtered(end-2000:end))-2 max(filtered(end-2000:end))+2])
+                        %axes(handles.waveform_graph)
+                        
+                        xdata=t(t > t(end-3000+1));
+                        ydata=filtered(t>t(end-3000+1));
+                        set(handles.waveform_graph,'XData',xdata,'YData',ydata)
+                        axis([xdata(1) xdata(end) min(ydata) max(ydata)])
                         
                         for i=count-length(red)-k:count-k
                             
@@ -395,26 +401,31 @@ while get(handles.stop,'Value') == 0
                                     five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
                                     Pulse=[Pulse round(mean(five_pulses))];
                                     PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/MaxPulse)];
-                                    AC_red=[AC_red max(redSig(i-500:end-100))];
-                                    DC_red=[DC_red min(redSig(i-500:end-100))];
-                                    AC_IR=[AC_IR max(irSig(i-500:end-100))];
-                                    DC_IR=[DC_IR min(irSig(i-500:end-100))];
-                                    newR=((AC_red(end)-DC_red(end))/DC_red(end))/((AC_IR(end)-DC_IR(end))/DC_IR(end));
-                                    R=[R 0.8*R(end)+0.2*newR];
+                                    max_red=max(redSig(i-1000:end-100));
+                                    min_red=min(redSig(i-1000:end-100));
+                                    max_IR=max(irSig(i-1000:end-100));
+                                    min_IR=min(irSig(i-1000:end-100));    
+                                    AC_red=[AC_red max_red-min_red];
+                                    DC_red=[DC_red max_red];
+                                    AC_IR=[AC_IR max_IR-min_IR];
+                                    DC_IR=[DC_IR max_IR];
+                                    newR=(AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end));
+                                    R=[R 0.95*R(end)+0.05*newR];
                                     Sat = R*2; % Here will the calibration be written!
                                     set(handles.pulse_value, 'String', Pulse(end));
                                     set(handles.max_pulse_value, 'String', PercentageOfMax(end));
-                                    %plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r',ptp_time,R,'-b','LineWidth',1.5);
+                                    set(handles.oxy_value, 'String', Sat);
+                                    %plot(handles.oxy_value,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r',ptp_time,R,'-b','LineWidth',1.5);
                                     
                                     %Show pulse and O2 in axes2 with tag oxy_graph
-                                    axes(handles.oxy_graph)
-                                    [ax,p1,p2] = plotyy(ptp_time,Pulse,ptp_time,Sat,'semilogy','plot');
-                                    xlabel(ax(1),'Time [s]') % label x-axis
-                                    ylabel(ax(1),'BPM') % label left y-axis
-                                    ylabel(ax(2),'% O2') % label right y-axis
-                                    line(handles.time_peak,handles.pulse,'Color','k')
-                                    ax(1).XColor = 'k';
-                                    ax(1).YColor = 'k';
+                                    %axes(handles.oxy_graph)
+%                                     [ax,p1,p2] = plotyy(handles.oxy_graph,ptp_time,Pulse,ptp_time,Sat,'semilogy','plot');
+%                                     xlabel(ax(1),'Time [s]') % label x-axis
+%                                     ylabel(ax(1),'BPM') % label left y-axis
+%                                     ylabel(ax(2),'% O2') % label right y-axis
+%                                     line(handles.time_peak,handles.pulse,'Color','k')
+%                                     ax(1).XColor = 'k';
+%                                     ax(1).YColor = 'k';
                                     
 %                                   hAx=plotyy(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,Sat,'-r')
 %                                   ylabel(hAx(1),'Pulse [BPM]')
