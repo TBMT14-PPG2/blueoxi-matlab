@@ -198,7 +198,6 @@ function stop_buttom_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
   
-% --- Executes on button press in record.
 function record_Callback(hObject, eventdata, handles)
 % hObject    handle to record (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -247,8 +246,7 @@ plotCnt=1;
 
 redSig=[];
 irSig=[];
-sig_red=[];
-sig_ir=[];
+csig_ir=[];
 k=300;
 Fs=1000;
 
@@ -272,12 +270,15 @@ DC_IR=0;
 R=1;
 newR=1;
 
+
 axes(handles.waveform_graph)
 handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
+
 
 % Gets the data from the device into matlab while stopped button is not
 % pressed.
 while get(handles.stop_buttom,'Value') == 0
+    
     
     if s.BytesAvailable > 0
         byte_array=fread(s, s.BytesAvailable, 'uchar');
@@ -367,6 +368,7 @@ while get(handles.stop_buttom,'Value') == 0
                 redSig=[redSig red];
                 irSig =[irSig ir];
                 
+                
                 if mod(plotCnt, 1)==0
                     
                     for i=length(redSig)-length(red)-length(filt)+1:length(redSig)-length(filt)
@@ -414,9 +416,9 @@ while get(handles.stop_buttom,'Value') == 0
                                     Sat = R*2; % Here will the calibration be written!
                                     set(handles.pulse_value, 'String', Pulse(end));
                                     set(handles.max_pulse_value, 'String', PercentageOfMax(end));
-                                    set(handles.oxy_value, 'String', Sat);
-                                    %plot(handles.oxy_value,ptp_time,Pulse,'-k',ptp_time,PercentageOfMax,'-r',ptp_time,R,'-b','LineWidth',1.5);
-                                    
+                                    set(handles.oxy_value, 'String', R(end));
+                                   % plot(handles.oxy_value,ptp_time,Pulse,'-k',ptp_time,R*5,'-r',ptp_time,R,'-b','LineWidth',1.5);
+                                    %plot(handles.oxy_value,ptp_time,Pulse,,ptp_time,R*5);
                                     %Show pulse and O2 in axes2 with tag oxy_graph
                                     %axes(handles.oxy_graph)
 %                                     [ax,p1,p2] = plotyy(handles.oxy_graph,ptp_time,Pulse,ptp_time,Sat,'semilogy','plot');
