@@ -159,7 +159,7 @@ set(handles.max_pulse_value, 'String', round(mean(handles.max_pulse)));
 
 %Display the value of the average oxy_sat in tag oxy_value
 set(handles.text21, 'String', 'Average SpO2:');
-set(handles.oxy_value, 'String', round(mean(handles.saturation)));
+set(handles.oxy_value, 'String', round(mean(handles.saturation));
 
 %Show pulse and O2 in axes2 with tag oxy_graph
 axes(handles.oxy_graph)
