@@ -197,7 +197,20 @@ function stop_buttom_Callback(hObject, eventdata, handles)
 % hObject    handle to stop_buttom (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+guidata(hObject,handles)
+set(handles.stop_buttom, 'Value', 1);
+guidata(hObject,handles)
+%Construct a questdlg with three default options
+choice = questdlg('Do you like to save?', 'Save dialog');
+
+switch choice
+    case 'Yes'
+        uisave({'filtered', 'ptp_time', 'Pulse', 'PercentageOfMax', 'R','t'}); % Save Sat instead of R!
+    case 'No'  
+    case 'Cancel'
+end
   
+% --- Executes on button press in record.
 function record_Callback(hObject, eventdata, handles)
 % hObject    handle to record (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -213,9 +226,8 @@ s = tcpip('0.0.0.0', 2222, 'NetworkRole', 'server');
 
 set(s, 'InputBufferSize', 30000);
 set(s, 'Terminator', '');
-2
 fopen(s);
-1
+
 
 % Checks if the entered film length is a number
 if isnan(str2double(get(handles.age,'String'))) == 1
@@ -267,9 +279,13 @@ ACfull=0;
 DCfull=0;
 AC_IR=0;
 DC_IR=0;
-R=1;
-newR=1;
-
+R=1.6;
+newR=1.6;
+Sat=96;
+newSat=96;
+dummy=0;
+length_red=50;
+Stop=0;
 
 axes(handles.waveform_graph)
 handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
@@ -277,7 +293,8 @@ handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
 
 % Gets the data from the device into matlab while stopped button is not
 % pressed.
-while get(handles.stop_buttom,'Value') == 0
+%while handles.Stop == 0
+while ~get(handles.stop_buttom, 'Value')
     
     
     if s.BytesAvailable > 0
@@ -286,7 +303,7 @@ while get(handles.stop_buttom,'Value') == 0
         byteCnt=1;
     end
     
-    while bCnt >0
+    while (bCnt >0 && ~get(handles.stop_buttom, 'Value'))
         byte = byte_array(byteCnt);
         byteCnt=byteCnt+1;
         bCnt=bCnt-1;
@@ -365,22 +382,46 @@ while get(handles.stop_buttom,'Value') == 0
                 
                 red=sample(1:2:end);
                 ir=sample(2:2:end);
+                
+                hej=1;
+%                 if (dummy>2)
+%                 
+%                     if ( max(red)>max(redSig(end-length_red+1:end))*1.5 || ...
+%                          min(red)<min(redSig(end-length_red+1:end))*0.5 )
+%                      
+%                         red=redSig(end-length_red:end);
+%                         ir=irSig(end-length_red:end);
+% 
+%                         hej=0;
+% 
+%                     end
+%                 end
                 redSig=[redSig red];
                 irSig =[irSig ir];
+                dummy=dummy+1;
                 
-                
-                if mod(plotCnt, 1)==0
+                if (mod(plotCnt, 1)==0 && hej==1)
                     
-                    for i=length(redSig)-length(red)-length(filt)+1:length(redSig)-length(filt)
+                
+                    
+                    for i=length(redSig)-length_red-length(filt)+1:length(redSig)-length(filt)
                         filtered(i)=2^16-sum(redSig(i:i+length(filt)-1).*filt);
                         %filteredIR(i)=sum(irSig(i:i+length(filt)-1).*filt);
                         t(i)=i/1000;
                     end
                     count=round(t(end)*1000);
                     
-                   % save Data filtered AC_red DC_red AC_IR DC_IR redSig irSig R ptp_time t
+                    if (round(t(end)/10)==t(end)/10)
+                        t(end)
+                        %save Data filtered AC_red DC_red AC_IR DC_IR redSig irSig R ptp_time t
+                        save Data filtered Pulse Sat PercentageOfMax t ptp_time
+                        %redSig=redSig(end-3000:end);
+                        %irSig=irSig(end-3000:end);
+                        
+                    end
                     
                     if t(end)>4
+                        
                         
                         %axes(handles.waveform_graph)
                         
@@ -389,36 +430,55 @@ while get(handles.stop_buttom,'Value') == 0
                         set(handles.waveform_graph,'XData',xdata,'YData',ydata)
                         axis([xdata(1) xdata(end) min(ydata) max(ydata)])
                         
-                        for i=count-length(red)-k:count-k
+                        for i=count-length_red-k:count-floor(k/2)
                             
                             if t(i-k)>lastpeaktime+30/Pulse(end)
                                 
-                                if ( ( filtered(i-k)>=max(filtered(i-k+1:i)) )  && ...
+%                                 if ( ( filtered(i-k)>=max(filtered(i-k+1:i)) )  && ...
+%                                         (  filtered(i-k)>=max(filtered(i-2*k:i-k-1)) ) )
+                                    if ( ( filtered(i-k)>=max(filtered(i-k+1:i-k/2)) )  && ...
                                         (  filtered(i-k)>=max(filtered(i-2*k:i-k-1)) ) )
                                     
                                     hold on
+                                    %scatter(handles.waveform_graph,t(i-k),filtered(i-k),'or','fill')
                                     scatter(t(i-k),filtered(i-k),'or','fill')
                                     lastpeaktime=t(i-k);
                                     ptp_time = [ptp_time lastpeaktime];
                                     five_pulses=[five_pulses(2:5) 60/(ptp_time(end)-ptp_time(end-1))];
                                     Pulse=[Pulse round(mean(five_pulses))];
                                     PercentageOfMax=[PercentageOfMax round(100*Pulse(end)/MaxPulse)];
-                                    max_red=max(redSig(i-1000:end-100));
-                                    min_red=min(redSig(i-1000:end-100));
-                                    max_IR=max(irSig(i-1000:end-100));
-                                    min_IR=min(irSig(i-1000:end-100));    
-                                    AC_red=[AC_red max_red-min_red];
-                                    DC_red=[DC_red max_red];
-                                    AC_IR=[AC_IR max_IR-min_IR];
-                                    DC_IR=[DC_IR max_IR];
+                                    max_red=max(redSig(i-1000:end));
+                                    min_red=min(redSig(i-1000:end));
+                                    max_IR=max(irSig(i-1000:end));
+                                    min_IR=min(irSig(i-1000:end));    
+%                                     AC_red=[AC_red max_red-min_red];
+%                                     DC_red=[DC_red max_red];
+%                                     AC_IR=[AC_IR max_IR-min_IR];
+%                                     DC_IR=[DC_IR max_IR];
+%                                     newR=(AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end));
+%                                     R=[R 0.95*R(end)+0.05*newR];
+
+                                    AC_red=max_red-min_red;
+                                    DC_red=max_red;
+                                    AC_IR=max_IR-min_IR;
+                                    DC_IR=max_IR;
                                     newR=(AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end));
-                                    R=[R 0.95*R(end)+0.05*newR];
-                                    Sat = R*2; % Here will the calibration be written!
+                                    if newR>1.919
+                                        newSat=100;
+                                    else
+                                        newSat=9.554*newR + 81.6639;
+                                    end
+                                    
+                                    Sat = [Sat round(0.95*Sat(end)+0.05*newSat)]; % Here will the calibration be written!
                                     set(handles.pulse_value, 'String', Pulse(end));
                                     set(handles.max_pulse_value, 'String', PercentageOfMax(end));
-                                    set(handles.oxy_value, 'String', R(end));
-                                   % plot(handles.oxy_value,ptp_time,Pulse,'-k',ptp_time,R*5,'-r',ptp_time,R,'-b','LineWidth',1.5);
-                                    %plot(handles.oxy_value,ptp_time,Pulse,,ptp_time,R*5);
+                                    set(handles.oxy_value, 'String', Sat(end));
+                                    plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,Sat,'-r','LineWidth',1.5);
+                                    
+                                    %plotyy(handles.oxy_graph,ptp_time,Pulse,ptp_time,R*5);
+                                    
+                                    %plot(handles.oxy_graph,ptp_time,Pulse,ptp_time,R*5);
+                                    
                                     %Show pulse and O2 in axes2 with tag oxy_graph
                                     %axes(handles.oxy_graph)
 %                                     [ax,p1,p2] = plotyy(handles.oxy_graph,ptp_time,Pulse,ptp_time,Sat,'semilogy','plot');
@@ -445,6 +505,13 @@ while get(handles.stop_buttom,'Value') == 0
                 disp('done')
         end
     end
+    
+    guidata(hObject,handles)
+     if(get(handles.stop_buttom, 'Value')==1)
+         break
+     end;
+     
+  %  handles.Stop
 end
 
 %Construct a questdlg with three default options
@@ -452,7 +519,8 @@ choice = questdlg('Do you like to save?', 'Save dialog');
 
 switch choice
     case 'Yes'
-        uisave({'filtered', 'ptp_time', 'Pulse', 'PercentageOfMax', 'R','t'}); % Save Sat instead of R!
+        %uisave({'filtered', 'ptp_time', 'Pulse', 'PercentageOfMax', 'Sat','t'});
+        uisave filtered ptp_time Pulse PercentageOfMax Sat t% Save Sat instead of R!
     case 'No'  
     case 'Cancel'
 end
