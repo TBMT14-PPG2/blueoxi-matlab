@@ -420,6 +420,13 @@ while ~get(handles.stop_buttom, 'Value')
                                     AC_IR=max_IR-min_IR;
                                     DC_IR=max_IR;
                                     newR=(AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end));
+                                    
+                                    %if newR<0.5
+                                    %    newSat=100;
+                                    %else
+                                    %    newSat=-24*newR+112;
+                                    %end
+                                    
                                     newSat=-24*newR+112;
                                     Sat = [Sat round(0.95*Sat(end)+0.05*newSat)]; 
                                     set(handles.pulse_value, 'String', Pulse(end));
