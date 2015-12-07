@@ -384,6 +384,7 @@ while ~get(handles.stop_buttom, 'Value')
                 ir=sample(2:2:end);
                 
                 hej=1;
+                % Attempt to fix error with high or low spike values. 
 %                 if (dummy>2)
 %                 
 %                     if ( max(red)>max(redSig(end-length_red+1:end))*1.5 || ...
@@ -406,17 +407,16 @@ while ~get(handles.stop_buttom, 'Value')
                     
                     for i=length(redSig)-length_red-length(filt)+1:length(redSig)-length(filt)
                         filtered(i)=2^16-sum(redSig(i:i+length(filt)-1).*filt);
-                        %filteredIR(i)=sum(irSig(i:i+length(filt)-1).*filt);
+                        %filteredIR(i)=sum(irSig(i:i+length(filt)-1).*filt);  If one wnat to use the filtered signal from IR instead of red
                         t(i)=i/1000;
                     end
                     count=round(t(end)*1000);
                     
                     if (round(t(end)/10)==t(end)/10)
-                        t(end)
-                        %save Data filtered AC_red DC_red AC_IR DC_IR redSig irSig R ptp_time t
                         save Data filtered Pulse Sat PercentageOfMax t ptp_time
-                        %redSig=redSig(end-3000:end);
-                        %irSig=irSig(end-3000:end);
+                        %Remove old parts of the raw signal
+                        %redSig=redSig(end-4000:end);
+                        %irSig=irSig(end-4000:end);
                         
                     end
                     
@@ -433,9 +433,7 @@ while ~get(handles.stop_buttom, 'Value')
                         for i=count-length_red-k:count-floor(k/2)
                             
                             if t(i-k)>lastpeaktime+30/Pulse(end)
-                                
-%                                 if ( ( filtered(i-k)>=max(filtered(i-k+1:i)) )  && ...
-%                                         (  filtered(i-k)>=max(filtered(i-2*k:i-k-1)) ) )
+                            
                                     if ( ( filtered(i-k)>=max(filtered(i-k+1:i-k/2)) )  && ...
                                         (  filtered(i-k)>=max(filtered(i-2*k:i-k-1)) ) )
                                     
@@ -451,6 +449,7 @@ while ~get(handles.stop_buttom, 'Value')
                                     min_red=min(redSig(i-1000:end));
                                     max_IR=max(irSig(i-1000:end));
                                     min_IR=min(irSig(i-1000:end));    
+                                    % Use these to save AC,DC and R for the whole measurement
 %                                     AC_red=[AC_red max_red-min_red];
 %                                     DC_red=[DC_red max_red];
 %                                     AC_IR=[AC_IR max_IR-min_IR];
@@ -463,6 +462,9 @@ while ~get(handles.stop_buttom, 'Value')
                                     AC_IR=max_IR-min_IR;
                                     DC_IR=max_IR;
                                     newR=(AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end));
+                                     % Sometimes SpO2 doesn't change with
+                                    % if-case. Without it it sometimes get
+                                    % above 100
                                     if newR>1.919
                                         newSat=100;
                                     else
