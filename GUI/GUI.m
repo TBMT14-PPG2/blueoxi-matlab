@@ -548,5 +548,5 @@ close all
 % --- Executes on button press in Help.
 % By pressing help button, a pdf file appears
 function help_botton_Callback(hObject, eventdata, handles)
-winopen('hej.pdf')
+winopen('UserManual.pdf')
 
