@@ -67,12 +67,6 @@ g= imread('blueoxi_logo.png');
 axes(handles.logo)
 imshow(g);
 
-% % Try to change the size on the toolbar
-% hToolbar = findall(gcf,'tag','FigureToolBar');
-% jToolbar = get(get(hToolbar,'JavaContainer'),'ComponentPeer');
-% jToolbar.setPreferredSize(java.awt.Dimension(10,50));
-% jToolbar.revalidate; % refresh/update the displayed toolbar
-
 % --- Outputs from this function are returned to the command line.
 function varargout = GUI_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -157,12 +151,12 @@ set(handles.max_pulse_value, 'String', round(mean(handles.max_pulse)));
 set(handles.text21, 'String', 'Average SpO2:');
 set(handles.oxy_value, 'String', round(mean(handles.saturation)));
 
-%Show pulse and O2 in axes2 with tag oxy_graph
+%Show pulse and O2 with two different yaxes with tag oxy_graph
 axes(handles.oxy_graph)
 [ax,p1,p2] = plotyy(handles.time_peak,handles.pulse,handles.time_peak,handles.saturation,'semilogy','plot');
 xlabel(ax(1),'Time [s]') % label x-axis
 ylabel(ax(1),'BPM') % label left y-axis
-ylabel(ax(2),'SPo2 [%]') % label right y-axis
+ylabel(ax(2),'SpO2 [%]') % label right y-axis
 set(handles.play, 'Enable', 'off');
 
 function age_Callback(hObject, eventdata, handles)
@@ -194,7 +188,8 @@ choice = questdlg('Do you like to save?', 'Save dialog');
 
 switch choice
     case 'Yes'
-        uisave({'filtered', 'ptp_time', 'Pulse', 'PercentageOfMax', 'R','t'}); % Save Sat instead of R!
+        %uisave({'filtered', 'Pulse', 'Sat', 'PercentageOfMax','t', 'ptp_time'});
+        uisave filtered Pulse Sat PercentageOfMax t ptp_time
     case 'No'  
     case 'Cancel'
 end
@@ -221,8 +216,7 @@ set(s, 'Terminator', '');
 
 fopen(s);
 
-
-% Checks if the entered film length is a number
+% Checks if the entered age is a number
 if isnan(str2double(get(handles.age,'String'))) == 1
     msgbox('Age must be a number')
     return
@@ -282,7 +276,6 @@ SecondsDisplayed=6; %Change to increase size of displayed window in real time
 
 axes(handles.waveform_graph)
 handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
-
 
 % Gets the data from the device into matlab while stopped button is not
 % pressed.
@@ -459,23 +452,11 @@ choice = questdlg('Do you like to save?', 'Save dialog');
 
 switch choice
     case 'Yes'
-        %uisave({'filtered', 'ptp_time', 'Pulse', 'PercentageOfMax', 'Sat','t'});
-        uisave filtered ptp_time Pulse PercentageOfMax Sat t
+        %uisave({'filtered', 'Pulse', 'Sat', 'PercentageOfMax','t', 'ptp_time'});
+        uisave filtered Pulse Sat PercentageOfMax t ptp_time
     case 'No'  
     case 'Cancel'
 end
-
-%Display the value of the current pulse in tag pulse_value
-set(handles.text20, 'String', 'Avg pulse bpm:');
-set(handles.pulse_value, 'String', mean(Pulse));
-
-%Display the value of the maximum pulse in tag max_pulse_value
-set(handles.text19, 'String', 'Avg percentage max pulse:');
-set(handles.max_pulse_value, 'String', mean(PercentageOfMax));
-
-%Display the value of the current oxy_sat in tag oxy_value
-set(handles.text21, 'String', 'Average SpO2:');
-set(handles.oxy_value, 'String', mean(R)); % Change to SpO2!!!
 
 fclose(s);
 delete(s);
@@ -483,7 +464,7 @@ clear s;
 
 % --- Executes on button press in Forward.
 function Forward_Callback(hObject, eventdata, handles)
-% The forward button makes it possible to step forward in the signal
+% The forward button makes it possible to step forward in the loaded signal
 Ax = findall(0,'type','axes');
 xl=xlim(Ax(4));
 min_sig = min(handles.signal((xl(1)*500+1):(xl(2)*500)));
@@ -494,7 +475,7 @@ end
 
 % --- Executes on button press in backward.
 function backward_Callback(hObject, eventdata, handles)
-% The backward button makes it possible to step backward in the signal
+% The backward button makes it possible to step backward in the loaded signal
 Ax = findall(0,'type','axes');
 xl=xlim(Ax(4));
 min_sig = min(handles.signal((xl(1)*500+1):(xl(2)*500)));
@@ -510,7 +491,7 @@ clc
 close all
 
 % --- Executes on button press in Help.
-% By pressing help button, a pdf file appears
+% By pressing help button, a pdf file appears in acrobate reader
 function help_botton_Callback(hObject, eventdata, handles)
 winopen('UserManual.pdf')
 
