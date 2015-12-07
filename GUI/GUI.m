@@ -213,14 +213,11 @@ instrreset;
 s = tcpip('0.0.0.0', 2222, 'NetworkRole', 'server');
 set(s, 'InputBufferSize', 30000);
 set(s, 'Terminator', '');
-% Maybe we want a messagebox that says that a recording is not possible or
-% something?!
 
 % USB
-s = serial('COM3');  %Change to the right serial port
-set(s, 'InputBufferSize', 256);
-set(s, 'BaudRate', '115200');
-
+%s = serial('COM3');  %Change to the right serial port
+%set(s, 'InputBufferSize', 256);
+%set(s, 'BaudRate', '115200');
 
 fopen(s);
 
@@ -279,9 +276,9 @@ R=1.6;
 newR=1.6;
 Sat=96;
 newSat=96;
-dummy=0;
 length_red=50;
 Stop=0;
+SecondsDisplayed=6; %Change to increase size of displayed window in real time
 
 axes(handles.waveform_graph)
 handles.waveform_graph=plot(t,filtered,'-k','LineWidth',1.5);
@@ -373,52 +370,30 @@ while ~get(handles.stop_buttom, 'Value')
                 else
                     state = 1;
                 end
-                
-            %case 7
             
-                %CHANGE THIS IF RECLIBRATING!!!
-                red=sample(1:2:end);
-                ir=sample(2:2:end);
-                
-                hej=1;
-                % Attempt to fix error with high or low spike values. 
-%                 if (dummy>2)
-%                 
-%                     if ( max(red)>max(redSig(end-length_red+1:end))*1.5 || ...
-%                          min(red)<min(redSig(end-length_red+1:end))*0.5 )
-%                      
-%                         red=redSig(end-length_red:end);
-%                         ir=irSig(end-length_red:end);
-% 
-%                         hej=0;
-% 
-%                     end
-%                 end
+                ir=sample(1:2:end);
+                redr=sample(2:2:end);
+               
                 redSig=[redSig red];
                 irSig =[irSig ir];
-                dummy=dummy+1;
                 
-                if (mod(plotCnt, 1)==0 && hej==1)
+                if mod(plotCnt, 1)==0
                     
                     for i=length(redSig)-length_red-length(filt)+1:length(redSig)-length(filt)
                         filtered(i)=2^16-sum(redSig(i:i+length(filt)-1).*filt);
-                        %filteredIR(i)=sum(irSig(i:i+length(filt)-1).*filt);  If one wnat to use the filtered signal from IR instead of red
                         t(i)=i/1000;
                     end
                     count=round(t(end)*1000);
                     
                     if (round(t(end)/10)==t(end)/10)
                         save Data filtered Pulse Sat PercentageOfMax t ptp_time
-                        %Remove old parts of the raw signal to decease calc time hopefully
-                        %redSig=redSig(end-4000:end);
-                        %irSig=irSig(end-4000:end);
                         
                     end
                     
-                    if t(end)>4
-                    
-                        xdata=t(t > t(end-3000+1));
-                        ydata=filtered(t>t(end-3000+1));
+                    if t(end)>SecondsDisplayed+0.1
+                        
+                        xdata=t(t > t(end-Secondsdisplayed*1000+1));
+                        ydata=filtered(t>t(end-Secondsdisplayed*1000+1));
                         set(handles.waveform_graph,'XData',xdata,'YData',ydata)
                         axis([xdata(1) xdata(end) min(ydata) max(ydata)])
                         
@@ -440,31 +415,13 @@ while ~get(handles.stop_buttom, 'Value')
                                     min_red=min(redSig(i-1000:end));
                                     max_IR=max(irSig(i-1000:end));
                                     min_IR=min(irSig(i-1000:end));    
-                                    
-                                    % Use these to save AC,DC and R for the whole measurement
-%                                     AC_red=[AC_red max_red-min_red];
-%                                     DC_red=[DC_red max_red];
-%                                     AC_IR=[AC_IR max_IR-min_IR];
-%                                     DC_IR=[DC_IR max_IR];
-%                                     newR=(AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end));
-%                                     R=[R 0.95*R(end)+0.05*newR];
-
                                     AC_red=max_red-min_red;
                                     DC_red=max_red;
                                     AC_IR=max_IR-min_IR;
                                     DC_IR=max_IR;
                                     newR=(AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end));
-                                    % Sometimes SpO2 doesn't change with
-                                    % if-case. Without it it sometimes get
-                                    % above 100
-                                    %1.919 is calculated manually. Gives saturation=99.998%
-                                    if newR>1.919
-                                        newSat=100;
-                                    else
-                                        newSat=9.554*newR + 81.6639;
-                                    end
-                                    
-                                    Sat = [Sat round(0.95*Sat(end)+0.05*newSat)]; % Here will the calibration be written!
+                                    newSat=-24*newR+112;
+                                    Sat = [Sat round(0.95*Sat(end)+0.05*newSat)]; 
                                     set(handles.pulse_value, 'String', Pulse(end));
                                     set(handles.max_pulse_value, 'String', PercentageOfMax(end));
                                     set(handles.oxy_value, 'String', Sat(end));
