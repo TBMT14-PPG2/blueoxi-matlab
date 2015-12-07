@@ -208,13 +208,20 @@ axes(handles.waveform_graph)
 delete(instrfindall);
 clear s;
 instrreset;
-s = tcpip('0.0.0.0', 2222, 'NetworkRole', 'server');
 
+% WiFi
+s = tcpip('0.0.0.0', 2222, 'NetworkRole', 'server');
+set(s, 'InputBufferSize', 30000);
+set(s, 'Terminator', '');
 % Maybe we want a messagebox that says that a recording is not possible or
 % something?!
 
-set(s, 'InputBufferSize', 30000);
-set(s, 'Terminator', '');
+% USB
+s = serial('COM3');  %Change to the right serial port
+set(s, 'InputBufferSize', 256);
+set(s, 'BaudRate', '115200');
+
+
 fopen(s);
 
 
