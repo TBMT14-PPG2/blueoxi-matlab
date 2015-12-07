@@ -146,7 +146,7 @@ Ax = findall(0,'type','axes');
 axis(Ax(3),[0 10 min(handles.signal(100:5000)) max(handles.signal(100:5000))]);
 
 %Display the value of the average pulse in tag pulse_value
-set(handles.text20, 'String', 'Avg pulse bpm:');
+set(handles.text20, 'String', 'Avg pulse BPM:');
 set(handles.pulse_value, 'String', round(mean(handles.pulse)));
 
 %Display the value of the maximum pulse in tag max_pulse_value
@@ -162,7 +162,7 @@ axes(handles.oxy_graph)
 [ax,p1,p2] = plotyy(handles.time_peak,handles.pulse,handles.time_peak,handles.saturation,'semilogy','plot');
 xlabel(ax(1),'Time [s]') % label x-axis
 ylabel(ax(1),'BPM') % label left y-axis
-ylabel(ax(2),'% O2') % label right y-axis
+ylabel(ax(2),'SPo2 [%]') % label right y-axis
 set(handles.play, 'Enable', 'off');
 
 function age_Callback(hObject, eventdata, handles)
