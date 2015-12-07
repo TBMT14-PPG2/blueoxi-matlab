@@ -99,27 +99,23 @@ if handles.signal_loaded==1
     
     filename=uigetfile('*.mat');
     load(filename)
-%     handles.pulse = Pulse;
-    handles.pulse = AC_IR; % Change this so it is the actuall pulse!!!
-    handles.saturation = R;
-%     handles.max_pulse = PercentageOfMax;
-    handles.max_pulse = AC_red; % Change this so it is the actuall pulse!!!
+    handles.pulse = Pulse;
+    handles.saturation = Sat;
+    handles.max_pulse = PercentageOfMax;
     handles.time_peak = ptp_time;
     handles.time_sig = t;
     handles.signal = filtered;
     set(handles.play, 'Enable', 'on');
     set(handles.play, 'Value', 0);
-
     handles.signal_loaded=1;
     guidata(hObject,handles);
+    
 else
     filename=uigetfile('*.mat');
-      load(filename)
-%     handles.pulse = Pulse;
-    handles.pulse = AC_IR; % Change this so it is the actuall pulse!!!
-    handles.saturation = R; % Change to Saturation!
-%     handles.max_pulse = PercentageOfMax;
-    handles.max_pulse = AC_red; % Change this so it is the actuall pulse!!!
+    load(filename)
+    handles.pulse = Pulse;
+    handles.saturation = Sat;
+    handles.max_pulse = PercentageOfMax;
     handles.time_peak = ptp_time;
     handles.time_sig = t;
     handles.signal = filtered;
@@ -167,14 +163,7 @@ axes(handles.oxy_graph)
 xlabel(ax(1),'Time [s]') % label x-axis
 ylabel(ax(1),'BPM') % label left y-axis
 ylabel(ax(2),'% O2') % label right y-axis
-% line(handles.time_peak,handles.pulse,'Color','k')
-% ax(1).XColor = 'k';
-% ax(1).YColor = 'k';
-% line(handles.time_peak,handles.saturation,'Color','g')
-% ax(2).XColor = 'r';
-% ax(2).YColor = 'r';
 set(handles.play, 'Enable', 'off');
-
 
 function age_Callback(hObject, eventdata, handles)
 % hObject    handle to age (see GCBO)
@@ -268,7 +257,7 @@ five_pulses=60*ones(1,5);
 Pulse=60;
 lastpeaktime=0;
 t=[0:1/500:35/500];
-filt=fir1(34, [0.5 8]/(Fs/2)); % fir1(34, [0.5 10]/(Fs/2));
+filt=fir1(34, [0.5 8]/(Fs/2)); 
 redSig=zeros(1,35);
 filtered=t;
 count=0;
@@ -379,7 +368,8 @@ while ~get(handles.stop_buttom, 'Value')
                 end
                 
             %case 7
-                
+            
+                %CHANGE THIS IF RECLIBRATING!!!
                 red=sample(1:2:end);
                 ir=sample(2:2:end);
                 
@@ -403,8 +393,6 @@ while ~get(handles.stop_buttom, 'Value')
                 
                 if (mod(plotCnt, 1)==0 && hej==1)
                     
-                
-                    
                     for i=length(redSig)-length_red-length(filt)+1:length(redSig)-length(filt)
                         filtered(i)=2^16-sum(redSig(i:i+length(filt)-1).*filt);
                         %filteredIR(i)=sum(irSig(i:i+length(filt)-1).*filt);  If one wnat to use the filtered signal from IR instead of red
@@ -414,17 +402,14 @@ while ~get(handles.stop_buttom, 'Value')
                     
                     if (round(t(end)/10)==t(end)/10)
                         save Data filtered Pulse Sat PercentageOfMax t ptp_time
-                        %Remove old parts of the raw signal
+                        %Remove old parts of the raw signal to decease calc time hopefully
                         %redSig=redSig(end-4000:end);
                         %irSig=irSig(end-4000:end);
                         
                     end
                     
                     if t(end)>4
-                        
-                        
-                        %axes(handles.waveform_graph)
-                        
+                    
                         xdata=t(t > t(end-3000+1));
                         ydata=filtered(t>t(end-3000+1));
                         set(handles.waveform_graph,'XData',xdata,'YData',ydata)
@@ -438,7 +423,6 @@ while ~get(handles.stop_buttom, 'Value')
                                         (  filtered(i-k)>=max(filtered(i-2*k:i-k-1)) ) )
                                     
                                     hold on
-                                    %scatter(handles.waveform_graph,t(i-k),filtered(i-k),'or','fill')
                                     scatter(t(i-k),filtered(i-k),'or','fill')
                                     lastpeaktime=t(i-k);
                                     ptp_time = [ptp_time lastpeaktime];
@@ -449,6 +433,7 @@ while ~get(handles.stop_buttom, 'Value')
                                     min_red=min(redSig(i-1000:end));
                                     max_IR=max(irSig(i-1000:end));
                                     min_IR=min(irSig(i-1000:end));    
+                                    
                                     % Use these to save AC,DC and R for the whole measurement
 %                                     AC_red=[AC_red max_red-min_red];
 %                                     DC_red=[DC_red max_red];
@@ -462,9 +447,10 @@ while ~get(handles.stop_buttom, 'Value')
                                     AC_IR=max_IR-min_IR;
                                     DC_IR=max_IR;
                                     newR=(AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end));
-                                     % Sometimes SpO2 doesn't change with
+                                    % Sometimes SpO2 doesn't change with
                                     % if-case. Without it it sometimes get
                                     % above 100
+                                    %1.919 is calculated manually. Gives saturation=99.998%
                                     if newR>1.919
                                         newSat=100;
                                     else
@@ -476,24 +462,7 @@ while ~get(handles.stop_buttom, 'Value')
                                     set(handles.max_pulse_value, 'String', PercentageOfMax(end));
                                     set(handles.oxy_value, 'String', Sat(end));
                                     plot(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,Sat,'-r','LineWidth',1.5);
-                                    
-                                    %plotyy(handles.oxy_graph,ptp_time,Pulse,ptp_time,R*5);
-                                    
-                                    %plot(handles.oxy_graph,ptp_time,Pulse,ptp_time,R*5);
-                                    
-                                    %Show pulse and O2 in axes2 with tag oxy_graph
-                                    %axes(handles.oxy_graph)
-%                                     [ax,p1,p2] = plotyy(handles.oxy_graph,ptp_time,Pulse,ptp_time,Sat,'semilogy','plot');
-%                                     xlabel(ax(1),'Time [s]') % label x-axis
-%                                     ylabel(ax(1),'BPM') % label left y-axis
-%                                     ylabel(ax(2),'% O2') % label right y-axis
-%                                     line(handles.time_peak,handles.pulse,'Color','k')
-%                                     ax(1).XColor = 'k';
-%                                     ax(1).YColor = 'k';
-                                    
-%                                   hAx=plotyy(handles.oxy_graph,ptp_time,Pulse,'-k',ptp_time,Sat,'-r')
-%                                   ylabel(hAx(1),'Pulse [BPM]')
-%                                   ylabel(hAx(2),'Saturation [%]')
+                                  
                                 end
                             end
                         end
@@ -512,8 +481,6 @@ while ~get(handles.stop_buttom, 'Value')
      if(get(handles.stop_buttom, 'Value')==1)
          break
      end;
-     
-  %  handles.Stop
 end
 
 %Construct a questdlg with three default options
@@ -522,7 +489,7 @@ choice = questdlg('Do you like to save?', 'Save dialog');
 switch choice
     case 'Yes'
         %uisave({'filtered', 'ptp_time', 'Pulse', 'PercentageOfMax', 'Sat','t'});
-        uisave filtered ptp_time Pulse PercentageOfMax Sat t% Save Sat instead of R!
+        uisave filtered ptp_time Pulse PercentageOfMax Sat t
     case 'No'  
     case 'Cancel'
 end
@@ -538,7 +505,6 @@ set(handles.max_pulse_value, 'String', mean(PercentageOfMax));
 %Display the value of the current oxy_sat in tag oxy_value
 set(handles.text21, 'String', 'Average SpO2:');
 set(handles.oxy_value, 'String', mean(R)); % Change to SpO2!!!
-
 
 fclose(s);
 delete(s);
