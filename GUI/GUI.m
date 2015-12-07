@@ -1,30 +1,7 @@
 function varargout = GUI(varargin)
 % GUI MATLAB code for GUI.fig
-%      GUI, by itself, creates a new GUI or raises the existing
-%      singleton*.
-%
-%      H = GUI returns the handle to a new GUI or the handle to
-%      the existing singleton*.
-%
-%      GUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in GUI.M with the given input arguments.
-%
-%      GUI('Property','Value',...) creates a new GUI or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before GUI_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to GUI_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help GUI
-
-% Last Modified by GUIDE v2.5 02-Dec-2015 13:49:07
-
-% Begin initialization code - DO NOT EDIT
+% Begin initialization code
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
@@ -41,8 +18,7 @@ if nargout
 else
     gui_mainfcn(gui_State, varargin{:});
 end
-% End initialization code - DO NOT EDIT
-
+% End initialization code
 
 % --- Executes just before GUI is made visible.
 function GUI_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -58,9 +34,6 @@ handles.signal_loaded=0;
 
 % Update handles structure
 guidata(hObject, handles);
-
-% UIWAIT makes GUI wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
 
 %Show our logo in axes 4
 g= imread('blueoxi_logo.png');
@@ -188,7 +161,6 @@ choice = questdlg('Do you like to save?', 'Save dialog');
 
 switch choice
     case 'Yes'
-        %uisave({'filtered', 'Pulse', 'Sat', 'PercentageOfMax','t', 'ptp_time'});
         uisave filtered Pulse Sat PercentageOfMax t ptp_time
     case 'No'  
     case 'Cancel'
@@ -413,13 +385,6 @@ while ~get(handles.stop_buttom, 'Value')
                                     AC_IR=max_IR-min_IR;
                                     DC_IR=max_IR;
                                     newR=(AC_red(end)/DC_red(end))/(AC_IR(end)/DC_IR(end));
-                                    
-                                    %if newR<0.5
-                                    %    newSat=100;
-                                    %else
-                                    %    newSat=-24*newR+112;
-                                    %end
-                                    
                                     newSat=-24*newR+112;
                                     Sat = [Sat round(0.95*Sat(end)+0.05*newSat)]; 
                                     set(handles.pulse_value, 'String', Pulse(end));
@@ -452,7 +417,6 @@ choice = questdlg('Do you like to save?', 'Save dialog');
 
 switch choice
     case 'Yes'
-        %uisave({'filtered', 'Pulse', 'Sat', 'PercentageOfMax','t', 'ptp_time'});
         uisave filtered Pulse Sat PercentageOfMax t ptp_time
     case 'No'  
     case 'Cancel'
